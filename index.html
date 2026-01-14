@@ -1,4 +1,3 @@
-```html
 <!doctype html>
 <html lang="en">
 <head>
@@ -110,6 +109,26 @@
     .metric .v .unit{ font-size: 14px; font-weight: 650; color: var(--muted); margin-left: 6px; }
     .accent{ color: var(--accent); }
 
+    /* NEW: tidy stacked lines under the Worker metric */
+    .stack{
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255,255,255,.08);
+      display: grid;
+      gap: 8px;
+    }
+    .line{
+      display:flex;
+      justify-content:space-between;
+      gap: 10px;
+      font-size: 12.5px;
+      color: var(--muted);
+    }
+    .line strong{
+      color: var(--text);
+      font-weight: 650;
+    }
+
     .notice{
       margin-top: 12px;
       border-radius: 14px;
@@ -191,6 +210,18 @@
           <div class="metric">
             <div class="k">Worker pay rate</div>
             <div class="v"><span id="displayPay">£0.00</span><span class="unit">/hour</span></div>
+
+            <!-- NEW: holiday + total worker pay lines -->
+            <div class="stack">
+              <div class="line">
+                <span>Holiday pay (added)</span>
+                <strong><span id="holidayPerHour">£0.00</span>/hour</strong>
+              </div>
+              <div class="line">
+                <span>Total worker pay</span>
+                <strong><span id="workerTotal">£0.00</span>/hour</strong>
+              </div>
+            </div>
           </div>
 
           <div class="metric">
@@ -220,11 +251,10 @@
 
 <script>
   // Fixed internal assumptions (hidden from clients)
-  // You can change these values before hosting if needed.
   const ASSUMPTIONS = {
     holidayPct: 0.1207,      // fixed holiday uplift
     pensionPct: 0.03,        // 3% employer pension
-    marginPerHour: 3.50,     // fixed margin
+    marginPerHour: 3.50,     // fixed margin / admin expenses
     // Employer NI weekly estimate: assumes weekly pay and 40 hours/week
     employerNIRate: 0.15,
     weeklySecondaryThreshold: 96,
@@ -235,30 +265,39 @@
     workerPay: document.getElementById('workerPay'),
     displayPay: document.getElementById('displayPay'),
     displayClient: document.getElementById('displayClient'),
+    holidayPerHour: document.getElementById('holidayPerHour'),
+    workerTotal: document.getElementById('workerTotal'),
     copyQuote: document.getElementById('copyQuote'),
     reset: document.getElementById('reset'),
   };
 
   function money(n){ return "£" + (Number.isFinite(n) ? n : 0).toFixed(2); }
 
-  function calcClientRate(workerPay){
-    const holiday = workerPay * ASSUMPTIONS.holidayPct;
-    const pension = workerPay * ASSUMPTIONS.pensionPct;
+  function calcClientRate(workerBasePay){
+    // Holiday is shown separately and added on top of base pay
+    const holiday = workerBasePay * ASSUMPTIONS.holidayPct;
+    const workerTotal = workerBasePay + holiday;
+
+    // Employer costs estimated on total worker pay
+    const pension = workerTotal * ASSUMPTIONS.pensionPct;
 
     // Weekly NI estimate -> convert to per-hour
-    const weeklyGross = workerPay * ASSUMPTIONS.assumedWeeklyHours;
+    const weeklyGross = workerTotal * ASSUMPTIONS.assumedWeeklyHours;
     const weeklyNI = Math.max(0, (weeklyGross - ASSUMPTIONS.weeklySecondaryThreshold) * ASSUMPTIONS.employerNIRate);
     const niPerHour = weeklyNI / ASSUMPTIONS.assumedWeeklyHours;
 
-    const total = workerPay + holiday + pension + niPerHour + ASSUMPTIONS.marginPerHour;
-    return total;
+    const totalClientRate = workerTotal + pension + niPerHour + ASSUMPTIONS.marginPerHour;
+    return { holiday, workerTotal, totalClientRate };
   }
 
   function render(){
-    const pay = Math.max(0, Number(els.workerPay.value || 0));
-    const clientRate = calcClientRate(pay);
-    els.displayPay.textContent = money(pay);
-    els.displayClient.textContent = money(clientRate);
+    const basePay = Math.max(0, Number(els.workerPay.value || 0));
+    const { holiday, workerTotal, totalClientRate } = calcClientRate(basePay);
+
+    els.displayPay.textContent = money(basePay);
+    els.holidayPerHour.textContent = money(holiday);
+    els.workerTotal.textContent = money(workerTotal);
+    els.displayClient.textContent = money(totalClientRate);
   }
 
   async function copyText(text){
@@ -275,12 +314,15 @@
   els.workerPay.addEventListener('input', render);
 
   els.copyQuote.addEventListener('click', () => {
-    const pay = Math.max(0, Number(els.workerPay.value || 0));
-    const clientRate = calcClientRate(pay);
+    const basePay = Math.max(0, Number(els.workerPay.value || 0));
+    const { holiday, workerTotal, totalClientRate } = calcClientRate(basePay);
+
     const quote =
 `GestioStaff – Rate Estimate (ex VAT)
-Worker pay: ${money(pay)}/hour
-Estimated client cost: ${money(clientRate)}/hour
+Base worker pay: ${money(basePay)}/hour
+Holiday pay (added): ${money(holiday)}/hour
+Total worker pay: ${money(workerTotal)}/hour
+Estimated client cost: ${money(totalClientRate)}/hour
 
 This is an approximate estimate for guidance only. Actual rates may vary slightly depending on assignment requirements and market conditions. For an exact quote, please enquire.`;
     copyText(quote);
@@ -295,4 +337,3 @@ This is an approximate estimate for guidance only. Actual rates may vary slightl
 </script>
 </body>
 </html>
-```
