@@ -23,7 +23,7 @@
                   var(--bg);
       color: var(--text);
     }
-    .wrap{ max-width: 920px; margin: 34px auto; padding: 0 16px; }
+    .wrap{ max-width: 1000px; margin: 34px auto; padding: 0 16px; } /* Slightly wider container */
     .hero{
       display:flex; justify-content:space-between; gap:16px; align-items:flex-start; flex-wrap:wrap;
       margin-bottom: 16px;
@@ -89,26 +89,36 @@
       box-shadow: 0 0 0 4px rgba(255,213,74,.12);
     }
 
+    /* UPDATED: 4 Columns for the results grid */
     .results{
       display:grid;
-      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-columns: 1fr 1fr 1fr 1fr; 
       gap: 12px;
       margin-top: 6px;
     }
-    @media (max-width: 720px){
-      .results{ grid-template-columns: 1fr; }
+    /* Responsive breakpoints */
+    @media (max-width: 900px){
+      .results{ grid-template-columns: 1fr 1fr; } /* 2x2 grid on tablets */
     }
+    @media (max-width: 500px){
+      .results{ grid-template-columns: 1fr; } /* Stacked on mobile */
+    }
+
     .metric{
       border-radius: 16px;
       border: 1px solid rgba(255,255,255,.08);
       background: rgba(15,18,26,.75);
       padding: 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
     }
-    .metric .k{ color: var(--muted); font-size: 12px; margin-bottom: 8px; }
-    .metric .v{ font-size: 28px; font-weight: 780; letter-spacing:.2px; }
-    .metric .v.small { font-size: 24px; }
-    .metric .v .unit{ font-size: 14px; font-weight: 650; color: var(--muted); margin-left: 6px; }
+    .metric .k{ color: var(--muted); font-size: 12px; margin-bottom: 8px; line-height: 1.3; }
+    .metric .v{ font-size: 26px; font-weight: 780; letter-spacing:.2px; }
+    .metric .v.small { font-size: 22px; }
+    .metric .v .unit{ font-size: 13px; font-weight: 650; color: var(--muted); margin-left: 4px; }
     .accent{ color: var(--accent); }
+    .highlight { color: #fff; } /* White text for Total Worker Pay to stand out slightly */
 
     .notice{
       margin-top: 12px;
@@ -189,12 +199,17 @@
         <div class="results">
           <div class="metric">
             <div class="k">Worker pay rate</div>
-            <div class="v"><span id="displayPay">£0.00</span><span class="unit">/hr</span></div>
+            <div class="v small"><span id="displayPay">£0.00</span><span class="unit">/hr</span></div>
           </div>
 
           <div class="metric">
             <div class="k">Holiday pay (12.07%)</div>
             <div class="v small"><span id="displayHoliday">£0.00</span><span class="unit">/hr</span></div>
+          </div>
+
+          <div class="metric">
+            <div class="k">Total worker pay</div>
+            <div class="v highlight"><span id="displayTotalWorker">£0.00</span><span class="unit">/hr</span></div>
           </div>
 
           <div class="metric">
@@ -241,6 +256,7 @@
     workerPay: document.getElementById('workerPay'),
     displayPay: document.getElementById('displayPay'),
     displayHoliday: document.getElementById('displayHoliday'),
+    displayTotalWorker: document.getElementById('displayTotalWorker'), // New
     displayClient: document.getElementById('displayClient'),
     copyQuote: document.getElementById('copyQuote'),
     reset: document.getElementById('reset'),
@@ -264,10 +280,12 @@
   function render(){
     const pay = Math.max(0, Number(els.workerPay.value || 0));
     const holidayVal = pay * ASSUMPTIONS.holidayPct;
+    const totalWorkerPay = pay + holidayVal; // Calculate Total Worker Pay
     const clientRate = calcClientRate(pay);
     
     els.displayPay.textContent = money(pay);
     els.displayHoliday.textContent = money(holidayVal);
+    els.displayTotalWorker.textContent = money(totalWorkerPay);
     els.displayClient.textContent = money(clientRate);
   }
 
@@ -287,11 +305,13 @@
   els.copyQuote.addEventListener('click', () => {
     const pay = Math.max(0, Number(els.workerPay.value || 0));
     const holidayVal = pay * ASSUMPTIONS.holidayPct;
+    const totalWorkerPay = pay + holidayVal;
     const clientRate = calcClientRate(pay);
     const quote =
 `GestioStaff – Rate Estimate (ex VAT)
 Worker pay: ${money(pay)}/hour
 Holiday pay: ${money(holidayVal)}/hour
+Total worker pay: ${money(totalWorkerPay)}/hour
 Estimated client cost: ${money(clientRate)}/hour
 
 The estimated client cost includes holiday pay, employer National Insurance contributions, employer pension contributions, and GestioStaff’s agency administrative expenses.`;
