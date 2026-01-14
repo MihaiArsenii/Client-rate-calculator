@@ -65,4 +65,137 @@
       display:grid; grid-template-columns: 1fr 220px; gap: 12px;
       align-items:center;
       padding: 10px 0;
-      border-top: 1px solid rgba(255,255,255,.
+      border-top: 1px solid rgba(255,255,255,.06);
+    }
+    .row:first-child{ border-top:0; padding-top:0; }
+    @media (max-width: 620px){
+      .row{ grid-template-columns: 1fr; }
+    }
+
+    label{ font-size: 13px; color: var(--text); }
+    .hint{ display:block; color: var(--muted); font-size: 12px; margin-top: 4px; }
+    input[type="number"]{
+      width: 100%;
+      padding: 12px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: #0f121a;
+      color: var(--text);
+      font-size: 15px;
+      outline: none;
+    }
+    input[type="number"]:focus{
+      border-color: rgba(255,213,74,.55);
+      box-shadow: 0 0 0 4px rgba(255,213,74,.12);
+    }
+
+    .results{
+      display:grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      margin-top: 6px;
+    }
+    @media (max-width: 720px){
+      .results{ grid-template-columns: 1fr; }
+    }
+    .metric{
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(15,18,26,.75);
+      padding: 14px;
+    }
+    .metric .k{ color: var(--muted); font-size: 12px; margin-bottom: 8px; }
+    .metric .v{ font-size: 28px; font-weight: 780; letter-spacing:.2px; }
+    .metric .v.small { font-size: 24px; }
+    .metric .v .unit{ font-size: 14px; font-weight: 650; color: var(--muted); margin-left: 6px; }
+    .accent{ color: var(--accent); }
+
+    .notice{
+      margin-top: 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(15,18,26,.55);
+      padding: 14px 14px;
+      color: var(--muted);
+      font-size: 12.5px;
+      line-height: 1.5;
+    }
+    .notice strong{ color: var(--text); font-weight: 650; }
+
+    .actions{
+      display:flex; gap:10px; flex-wrap:wrap; margin-top: 12px;
+    }
+    button{
+      cursor:pointer;
+      border-radius: 12px;
+      padding: 11px 12px;
+      border: 1px solid rgba(255,255,255,.12);
+      background:#0f121a;
+      color: var(--text);
+      font-weight: 650;
+      font-size: 13px;
+    }
+    button.primary{
+      background: rgba(255,213,74,.14);
+      border-color: rgba(255,213,74,.35);
+    }
+    button:hover{ filter: brightness(1.05); }
+
+    .footer{
+      margin-top: 14px;
+      display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    a{ color: var(--accent); text-decoration:none; }
+    a:hover{ text-decoration:underline; }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="hero">
+      <div class="brand">
+        <div class="logo" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M20 12a8 8 0 1 1-2.2-5.6" stroke="rgba(255,213,74,.95)" stroke-width="2.2" stroke-linecap="round"/>
+            <path d="M20 12h-6" stroke="rgba(255,213,74,.95)" stroke-width="2.2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div>
+          <h1>Client Rate Estimate</h1>
+          <div class="sub">
+            Use this tool to estimate your hourly staffing cost based on the hourly pay you want the worker to receive.
+            This estimate excludes VAT.
+          </div>
+        </div>
+      </div>
+
+      <div class="pill">GestioStaff Limited</div>
+    </div>
+
+    <div class="grid">
+      <section class="card">
+        <div class="row">
+          <div>
+            <label for="workerPay">Worker pay rate (£/hour)</label>
+            <span class="hint">Enter the hourly pay you wish the worker to receive (e.g., 13.00).</span>
+          </div>
+          <div>
+            <input id="workerPay" type="number" min="0" step="0.01" value="13.00" inputmode="decimal" />
+          </div>
+        </div>
+
+        <div class="results">
+          <div class="metric">
+            <div class="k">Worker pay rate</div>
+            <div class="v"><span id="displayPay">£0.00</span><span class="unit">/hr</span></div>
+          </div>
+
+          <div class="metric">
+            <div class="k">Holiday pay (12.07%)</div>
+            <div class="v small"><span id="displayHoliday">£0.00</span><span class="unit">/hr</span></div>
+          </div>
+
+          <div class="metric">
+            <div class="k">Estimated client cost</div>
