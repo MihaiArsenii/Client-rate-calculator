@@ -1,3 +1,4 @@
+```html
 <!doctype html>
 <html lang="en">
 <head>
@@ -18,49 +19,73 @@
     body{
       margin:0;
       font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      background: var(--bg);
+      background: radial-gradient(1200px 800px at 20% -10%, rgba(255,213,74,.10), transparent 60%),
+                  radial-gradient(1200px 800px at 80% 0%, rgba(100,180,255,.08), transparent 55%),
+                  var(--bg);
       color: var(--text);
     }
-    .wrap{ max-width: 920px; margin: 36px auto; padding: 0 16px; }
-    h1{ margin:0; font-size: 20px; }
-    .sub{ margin-top:6px; color: var(--muted); font-size: 13px; line-height: 1.45; max-width: 760px; }
-
-    .card{
-      margin-top:16px;
-      background: rgba(20,23,32,.95);
-      border: 1px solid rgba(255,255,255,.08);
-      border-radius: 18px;
-      padding: 20px;
+    .wrap{ max-width: 920px; margin: 34px auto; padding: 0 16px; }
+    .hero{
+      display:flex; justify-content:space-between; gap:16px; align-items:flex-start; flex-wrap:wrap;
+      margin-bottom: 16px;
+    }
+    .brand{
+      display:flex; gap:12px; align-items:center;
+    }
+    .logo{
+      width:40px; height:40px; border-radius:12px;
+      background: rgba(255,213,74,.16);
+      border:1px solid rgba(255,213,74,.28);
+      display:flex; align-items:center; justify-content:center;
       box-shadow: var(--shadow);
+      flex: 0 0 auto;
+    }
+    .logo svg{ width:22px; height:22px; }
+    h1{ margin:0; font-size: 18px; letter-spacing:.2px; }
+    .sub{ margin-top:6px; color: var(--muted); font-size: 13px; line-height: 1.4; max-width: 720px; }
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding: 8px 12px; border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(15,18,26,.65);
+      color: var(--muted); font-size: 12px;
     }
 
+    .card{
+      background: rgba(20,23,32,.92);
+      border: 1px solid rgba(255,255,255,.07);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(6px);
+    }
+
+    .grid{ display:grid; grid-template-columns: 1fr; gap: 14px; }
+
     .row{
-      display:grid;
-      grid-template-columns: 1fr 220px;
-      gap: 14px;
+      display:grid; grid-template-columns: 1fr 220px; gap: 12px;
       align-items:center;
-      padding: 12px 0;
+      padding: 10px 0;
       border-top: 1px solid rgba(255,255,255,.06);
     }
     .row:first-child{ border-top:0; padding-top:0; }
-    @media (max-width: 640px){
+    @media (max-width: 620px){
       .row{ grid-template-columns: 1fr; }
     }
 
-    label{ font-size: 14px; }
-    .hint{ display:block; font-size: 12px; color: var(--muted); margin-top: 4px; }
-
+    label{ font-size: 13px; color: var(--text); }
+    .hint{ display:block; color: var(--muted); font-size: 12px; margin-top: 4px; }
     input[type="number"]{
-      width:100%;
-      padding: 12px;
+      width: 100%;
+      padding: 12px 12px;
       border-radius: 12px;
-      border: 1px solid rgba(255,255,255,.12);
-      background:#0f121a;
-      color:var(--text);
+      border: 1px solid rgba(255,255,255,.10);
+      background: #0f121a;
+      color: var(--text);
       font-size: 15px;
+      outline: none;
     }
     input[type="number"]:focus{
-      outline:none;
       border-color: rgba(255,213,74,.55);
       box-shadow: 0 0 0 4px rgba(255,213,74,.12);
     }
@@ -68,65 +93,59 @@
     .results{
       display:grid;
       grid-template-columns: 1fr 1fr;
-      gap: 14px;
-      margin-top: 14px;
+      gap: 12px;
+      margin-top: 6px;
     }
     @media (max-width: 720px){
       .results{ grid-template-columns: 1fr; }
     }
-
     .metric{
       border-radius: 16px;
       border: 1px solid rgba(255,255,255,.08);
-      background: rgba(15,18,26,.8);
-      padding: 16px;
+      background: rgba(15,18,26,.75);
+      padding: 14px;
     }
-    .metric .k{ color: var(--muted); font-size: 12px; margin-bottom: 6px; }
-    .metric .v{ font-size: 30px; font-weight: 800; }
-    .metric .unit{ font-size: 14px; color: var(--muted); margin-left: 6px; }
+    .metric .k{ color: var(--muted); font-size: 12px; margin-bottom: 8px; }
+    .metric .v{ font-size: 28px; font-weight: 780; letter-spacing:.2px; }
+    .metric .v .unit{ font-size: 14px; font-weight: 650; color: var(--muted); margin-left: 6px; }
     .accent{ color: var(--accent); }
 
     .notice{
-      margin-top: 16px;
+      margin-top: 12px;
       border-radius: 14px;
       border: 1px solid rgba(255,255,255,.08);
       background: rgba(15,18,26,.55);
-      padding: 14px;
-      font-size: 12.5px;
-      line-height: 1.5;
+      padding: 12px 12px;
       color: var(--muted);
+      font-size: 12.5px;
+      line-height: 1.45;
     }
     .notice strong{ color: var(--text); font-weight: 650; }
 
     .actions{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      margin-top: 14px;
+      display:flex; gap:10px; flex-wrap:wrap; margin-top: 12px;
     }
     button{
       cursor:pointer;
       border-radius: 12px;
-      padding: 11px 14px;
+      padding: 11px 12px;
       border: 1px solid rgba(255,255,255,.12);
       background:#0f121a;
-      color:var(--text);
+      color: var(--text);
       font-weight: 650;
       font-size: 13px;
     }
     button.primary{
-      background: rgba(255,213,74,.15);
+      background: rgba(255,213,74,.14);
       border-color: rgba(255,213,74,.35);
     }
+    button:hover{ filter: brightness(1.05); }
 
     .footer{
-      margin-top: 16px;
-      display:flex;
-      justify-content:space-between;
-      gap:10px;
-      flex-wrap:wrap;
-      font-size: 12px;
+      margin-top: 14px;
+      display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;
       color: var(--muted);
+      font-size: 12px;
     }
     a{ color: var(--accent); text-decoration:none; }
     a:hover{ text-decoration:underline; }
@@ -134,118 +153,141 @@
 </head>
 
 <body>
-<div class="wrap">
-  <h1>Client Rate Estimate</h1>
-  <div class="sub">
-    Use this tool to estimate your hourly staffing cost based on the hourly rate you wish the worker to receive.
-    All figures shown are exclusive of VAT.
+  <div class="wrap">
+    <div class="hero">
+      <div class="brand">
+        <div class="logo" aria-hidden="true">
+          <!-- simple "G" mark placeholder -->
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M20 12a8 8 0 1 1-2.2-5.6" stroke="rgba(255,213,74,.95)" stroke-width="2.2" stroke-linecap="round"/>
+            <path d="M20 12h-6" stroke="rgba(255,213,74,.95)" stroke-width="2.2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div>
+          <h1>Client Rate Estimate</h1>
+          <div class="sub">
+            Use this tool to estimate your hourly staffing cost based on the hourly pay you want the worker to receive.
+            This estimate excludes VAT.
+          </div>
+        </div>
+      </div>
+
+      <div class="pill">GestioStaff Limited</div>
+    </div>
+
+    <div class="grid">
+      <section class="card">
+        <div class="row">
+          <div>
+            <label for="workerPay">Worker pay rate (£/hour)</label>
+            <span class="hint">Enter the hourly pay you wish the worker to receive (e.g., 13.00).</span>
+          </div>
+          <div>
+            <input id="workerPay" type="number" min="0" step="0.01" value="13.00" inputmode="decimal" />
+          </div>
+        </div>
+
+        <div class="results">
+          <div class="metric">
+            <div class="k">Worker pay rate</div>
+            <div class="v"><span id="displayPay">£0.00</span><span class="unit">/hour</span></div>
+          </div>
+
+          <div class="metric">
+            <div class="k">Estimated client cost</div>
+            <div class="v accent"><span id="displayClient">£0.00</span><span class="unit">/hour</span></div>
+          </div>
+        </div>
+
+        <div class="notice">
+          <strong>Important:</strong> This is an approximate estimate for guidance only. Actual rates may vary slightly depending on
+          assignment requirements and market conditions (for example, last-minute bookings, high demand, premium venues, shift complexity or higher-skill roles).
+          In most cases, any variation will not be significant. For an exact quote, please send an enquiry and we will confirm the final rate in writing.
+        </div>
+
+        <div class="actions">
+          <button class="primary" id="copyQuote">Copy estimate</button>
+          <button id="reset">Reset</button>
+        </div>
+
+        <div class="footer">
+          <div>Excludes VAT.</div>
+          <div>Enquiries: <a href="mailto:info@gestiostaff.com">info@gestiostaff.com</a></div>
+        </div>
+      </section>
+    </div>
   </div>
 
-  <section class="card">
-    <div class="row">
-      <div>
-        <label for="workerPay">Worker hourly pay (£)</label>
-        <span class="hint">
-          This rate already includes holiday pay.
-        </span>
-      </div>
-      <div>
-        <input id="workerPay" type="number" min="0" step="0.01" value="13.00" />
-      </div>
-    </div>
-
-    <div class="results">
-      <div class="metric">
-        <div class="k">Worker hourly pay (incl. holiday)</div>
-        <div class="v"><span id="displayPay">£0.00</span><span class="unit">/hour</span></div>
-      </div>
-
-      <div class="metric">
-        <div class="k">Estimated client cost</div>
-        <div class="v accent"><span id="displayClient">£0.00</span><span class="unit">/hour</span></div>
-      </div>
-    </div>
-
-    <div class="notice">
-      <strong>What’s included in the client rate:</strong><br>
-      The estimated client cost includes holiday pay, employer National Insurance contributions,
-      employer pension contributions, and GestioStaff’s agency administrative expenses.
-      <br><br>
-      <strong>Important:</strong> This is an approximate estimate provided for guidance only.
-      Final rates may vary slightly depending on specific factors such as last-minute bookings,
-      demand levels, role requirements, or event complexity.
-      In most cases, any variation will not be significant.
-      For an exact quote, please contact us and we will confirm the final rate in writing.
-    </div>
-
-    <div class="actions">
-      <button class="primary" id="copyQuote">Copy estimate</button>
-      <button id="reset">Reset</button>
-    </div>
-
-    <div class="footer">
-      <div>All rates shown exclude VAT.</div>
-      <div>Enquiries: <a href="mailto:info@gestiostaff.com">info@gestiostaff.com</a></div>
-    </div>
-  </section>
-</div>
-
 <script>
+  // Fixed internal assumptions (hidden from clients)
+  // You can change these values before hosting if needed.
   const ASSUMPTIONS = {
-    holidayPct: 0.1207,
-    pensionPct: 0.03,
-    marginPerHour: 3.50,
+    holidayPct: 0.1207,      // fixed holiday uplift
+    pensionPct: 0.03,        // 3% employer pension
+    marginPerHour: 3.50,     // fixed margin
+    // Employer NI weekly estimate: assumes weekly pay and 40 hours/week
     employerNIRate: 0.15,
     weeklySecondaryThreshold: 96,
-    assumedWeeklyHours: 40
+    assumedWeeklyHours: 40,
   };
 
-  const workerPayEl = document.getElementById('workerPay');
-  const displayPayEl = document.getElementById('displayPay');
-  const displayClientEl = document.getElementById('displayClient');
-  const copyBtn = document.getElementById('copyQuote');
-  const resetBtn = document.getElementById('reset');
+  const els = {
+    workerPay: document.getElementById('workerPay'),
+    displayPay: document.getElementById('displayPay'),
+    displayClient: document.getElementById('displayClient'),
+    copyQuote: document.getElementById('copyQuote'),
+    reset: document.getElementById('reset'),
+  };
 
-  function money(n){ return "£" + n.toFixed(2); }
+  function money(n){ return "£" + (Number.isFinite(n) ? n : 0).toFixed(2); }
 
-  function calculateClientRate(workerPay){
+  function calcClientRate(workerPay){
+    const holiday = workerPay * ASSUMPTIONS.holidayPct;
     const pension = workerPay * ASSUMPTIONS.pensionPct;
+
+    // Weekly NI estimate -> convert to per-hour
     const weeklyGross = workerPay * ASSUMPTIONS.assumedWeeklyHours;
-    const weeklyNI = Math.max(
-      0,
-      (weeklyGross - ASSUMPTIONS.weeklySecondaryThreshold) * ASSUMPTIONS.employerNIRate
-    );
+    const weeklyNI = Math.max(0, (weeklyGross - ASSUMPTIONS.weeklySecondaryThreshold) * ASSUMPTIONS.employerNIRate);
     const niPerHour = weeklyNI / ASSUMPTIONS.assumedWeeklyHours;
 
-    return workerPay + pension + niPerHour + ASSUMPTIONS.marginPerHour;
+    const total = workerPay + holiday + pension + niPerHour + ASSUMPTIONS.marginPerHour;
+    return total;
   }
 
   function render(){
-    const pay = Math.max(0, Number(workerPayEl.value || 0));
-    const clientRate = calculateClientRate(pay);
-    displayPayEl.textContent = money(pay);
-    displayClientEl.textContent = money(clientRate);
+    const pay = Math.max(0, Number(els.workerPay.value || 0));
+    const clientRate = calcClientRate(pay);
+    els.displayPay.textContent = money(pay);
+    els.displayClient.textContent = money(clientRate);
   }
 
-  workerPayEl.addEventListener('input', render);
+  async function copyText(text){
+    try {
+      await navigator.clipboard.writeText(text);
+      els.copyQuote.textContent = "Copied";
+      setTimeout(() => els.copyQuote.textContent = "Copy estimate", 900);
+    } catch {
+      els.copyQuote.textContent = "Copy failed";
+      setTimeout(() => els.copyQuote.textContent = "Copy estimate", 900);
+    }
+  }
 
-  copyBtn.addEventListener('click', async () => {
-    const pay = Number(workerPayEl.value || 0);
-    const clientRate = calculateClientRate(pay);
-    const text =
+  els.workerPay.addEventListener('input', render);
+
+  els.copyQuote.addEventListener('click', () => {
+    const pay = Math.max(0, Number(els.workerPay.value || 0));
+    const clientRate = calcClientRate(pay);
+    const quote =
 `GestioStaff – Rate Estimate (ex VAT)
-Worker hourly pay (incl. holiday): ${money(pay)}
-Estimated client cost: ${money(clientRate)} / hour
+Worker pay: ${money(pay)}/hour
+Estimated client cost: ${money(clientRate)}/hour
 
-This estimate includes holiday pay, employer NI, employer pension and agency administrative expenses.
-Final rates may vary slightly depending on assignment requirements and demand.`;
-    await navigator.clipboard.writeText(text);
-    copyBtn.textContent = "Copied";
-    setTimeout(() => copyBtn.textContent = "Copy estimate", 900);
+This is an approximate estimate for guidance only. Actual rates may vary slightly depending on assignment requirements and market conditions. For an exact quote, please enquire.`;
+    copyText(quote);
   });
 
-  resetBtn.addEventListener('click', () => {
-    workerPayEl.value = "13.00";
+  els.reset.addEventListener('click', () => {
+    els.workerPay.value = "13.00";
     render();
   });
 
@@ -253,3 +295,4 @@ Final rates may vary slightly depending on assignment requirements and demand.`;
 </script>
 </body>
 </html>
+```
