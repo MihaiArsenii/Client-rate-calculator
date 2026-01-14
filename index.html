@@ -7,119 +7,44 @@
 
   <style>
     :root{
-      --bg:#0b0c0f;
-      --card:#141720;
-      --muted:#9aa4b2;
-      --text:#eef2f7;
-      --accent:#ffd54a;
-      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --bg:#0b0c0f; --card:#141720; --muted:#9aa4b2; --text:#eef2f7;
+      --accent:#ffd54a; --shadow: 0 10px 30px rgba(0,0,0,.35);
     }
-    body{
-      margin:0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-    }
-    .wrap{ max-width: 900px; margin: 36px auto; padding: 0 16px; }
+    *{ box-sizing:border-box; }
+    body{ margin:0; font-family: system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; background:var(--bg); color:var(--text); }
+    .wrap{ max-width: 920px; margin: 36px auto; padding: 0 16px; }
     h1{ margin:0; font-size: 20px; }
-    .sub{ margin-top:6px; color: var(--muted); font-size: 13px; line-height: 1.45; }
-
-    .card{
-      margin-top:16px;
-      background:#141720;
-      border-radius: 18px;
-      padding: 20px;
-      box-shadow: var(--shadow);
-    }
-
-    .row{
-      display:grid;
-      grid-template-columns: 1fr 220px;
-      gap:14px;
-      align-items:center;
-      padding:12px 0;
-      border-top:1px solid rgba(255,255,255,.06);
-    }
+    .sub{ margin-top:6px; color: var(--muted); font-size: 13px; line-height: 1.45; max-width: 760px; }
+    .card{ margin-top:16px; background:#141720; border-radius: 18px; padding: 20px; box-shadow: var(--shadow); }
+    .row{ display:grid; grid-template-columns: 1fr 240px; gap:14px; align-items:center; padding:12px 0; border-top:1px solid rgba(255,255,255,.06); }
     .row:first-child{ border-top:0; padding-top:0; }
-    @media (max-width:640px){
-      .row{ grid-template-columns:1fr; }
-    }
-
+    @media (max-width:640px){ .row{ grid-template-columns:1fr; } }
     label{ font-size:14px; }
     .hint{ font-size:12px; color:var(--muted); margin-top:4px; display:block; }
-
     input{
-      width:100%;
-      padding:12px;
-      border-radius:12px;
-      border:1px solid rgba(255,255,255,.12);
-      background:#0f121a;
-      color:var(--text);
-      font-size:15px;
+      width:100%; padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,.12);
+      background:#0f121a; color:var(--text); font-size:15px; outline:none;
     }
-
-    .results{
-      display:grid;
-      grid-template-columns: repeat(3,1fr);
-      gap:14px;
-      margin-top:14px;
-    }
-    @media (max-width:720px){
-      .results{ grid-template-columns:1fr; }
-    }
-
-    .metric{
-      background:#0f121a;
-      border-radius:16px;
-      padding:16px;
-      border:1px solid rgba(255,255,255,.08);
-    }
+    input:focus{ border-color: rgba(255,213,74,.55); box-shadow: 0 0 0 4px rgba(255,213,74,.12); }
+    .results{ display:grid; grid-template-columns: repeat(3,1fr); gap:14px; margin-top:14px; }
+    @media (max-width:720px){ .results{ grid-template-columns:1fr; } }
+    .metric{ background:#0f121a; border-radius:16px; padding:16px; border:1px solid rgba(255,255,255,.08); }
     .metric .k{ font-size:12px; color:var(--muted); margin-bottom:6px; }
     .metric .v{ font-size:26px; font-weight:800; }
     .metric .unit{ font-size:14px; color:var(--muted); margin-left:6px; }
     .accent{ color:var(--accent); }
-
     .notice{
-      margin-top:16px;
-      padding:14px;
-      border-radius:14px;
-      background:#0f121a;
-      border:1px solid rgba(255,255,255,.08);
-      font-size:12.5px;
-      color:var(--muted);
-      line-height:1.5;
+      margin-top:16px; padding:14px; border-radius:14px; background:#0f121a; border:1px solid rgba(255,255,255,.08);
+      font-size:12.5px; color:var(--muted); line-height:1.5;
     }
     .notice strong{ color:var(--text); }
-
-    .actions{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      margin-top:14px;
-    }
+    .actions{ display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; }
     button{
-      padding:11px 14px;
-      border-radius:12px;
-      border:1px solid rgba(255,255,255,.12);
-      background:#0f121a;
-      color:var(--text);
-      font-weight:600;
-      cursor:pointer;
+      padding:11px 14px; border-radius:12px; border:1px solid rgba(255,255,255,.12);
+      background:#0f121a; color:var(--text); font-weight:600; cursor:pointer;
     }
-    button.primary{
-      background:rgba(255,213,74,.15);
-      border-color:rgba(255,213,74,.35);
-    }
-
-    .footer{
-      margin-top:16px;
-      font-size:12px;
-      color:var(--muted);
-      display:flex;
-      justify-content:space-between;
-      gap:10px;
-      flex-wrap:wrap;
-    }
+    button.primary{ background:rgba(255,213,74,.15); border-color:rgba(255,213,74,.35); }
+    .footer{ margin-top:16px; font-size:12px; color:var(--muted); display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; }
     a{ color:var(--accent); text-decoration:none; }
   </style>
 </head>
@@ -128,18 +53,18 @@
 <div class="wrap">
   <h1>Client Rate Estimate</h1>
   <div class="sub">
-    Enter the hourly rate you wish the worker to receive (base pay).  
-    Holiday pay will be added separately.
+    Enter the hourly base rate you wish the worker to receive. Holiday pay is calculated and shown separately.
+    All figures shown exclude VAT.
   </div>
 
   <section class="card">
     <div class="row">
       <div>
-        <label>Base worker hourly rate (£)</label>
+        <label for="basePay">Base worker hourly rate (£)</label>
         <span class="hint">This is the hourly rate you wish to pay the worker, excluding holiday.</span>
       </div>
       <div>
-        <input id="basePay" type="number" min="0" step="0.01" value="13.00">
+        <input id="basePay" type="number" min="0" step="0.01" value="13.00" inputmode="decimal" />
       </div>
     </div>
 
@@ -150,7 +75,7 @@
       </div>
 
       <div class="metric">
-        <div class="k">Holiday pay</div>
+        <div class="k">Holiday pay (added)</div>
         <div class="v"><span id="holidayOut">£0.00</span><span class="unit">/hour</span></div>
       </div>
 
@@ -169,4 +94,87 @@
 
     <div class="notice">
       <strong>What’s included in the client rate:</strong><br>
-      The estimated client cost includes hol
+      The estimated client cost includes holiday pay, employer National Insurance contributions,
+      employer pension contributions, and GestioStaff’s agency administrative expenses.
+      <br><br>
+      <strong>Important:</strong> This is an approximate estimate for guidance only. Final rates may vary slightly depending on
+      factors such as last-minute bookings, demand, role requirements, or event complexity.
+      For an exact quote, please contact us and we will confirm the final rate in writing.
+    </div>
+
+    <div class="actions">
+      <button class="primary" id="copy">Copy estimate</button>
+      <button id="reset">Reset</button>
+    </div>
+
+    <div class="footer">
+      <div>All rates exclude VAT.</div>
+      <div>Enquiries: <a href="mailto:info@gestiostaff.com">info@gestiostaff.com</a></div>
+    </div>
+  </section>
+</div>
+
+<script>
+  window.addEventListener("DOMContentLoaded", () => {
+    // Fixed assumptions (hidden from clients)
+    const HOLIDAY_PCT = 0.1207;   // 12.07%
+    const PENSION_PCT = 0.03;    // 3%
+    const ADMIN_EXPENSES = 3.50; // your fixed £/h admin/margin bucket (kept internal)
+    const NI_RATE = 0.15;
+    const NI_WEEKLY_THRESHOLD = 96;
+    const WEEKLY_HOURS = 40;
+
+    const baseInput = document.getElementById("basePay");
+    const baseOut = document.getElementById("baseOut");
+    const holidayOut = document.getElementById("holidayOut");
+    const workerTotalOut = document.getElementById("workerTotalOut");
+    const clientOut = document.getElementById("clientOut");
+    const resetBtn = document.getElementById("reset");
+    const copyBtn = document.getElementById("copy");
+
+    // If any element is missing, stop (prevents silent failure)
+    const missing = [baseInput, baseOut, holidayOut, workerTotalOut, clientOut, resetBtn, copyBtn].some(x => !x);
+    if (missing) return;
+
+    const money = (n) => "£" + (Number.isFinite(n) ? n : 0).toFixed(2);
+
+    function calculate() {
+      const base = Math.max(0, Number(baseInput.value || 0));
+      const holiday = base * HOLIDAY_PCT;
+      const workerTotal = base + holiday;
+
+      const pension = workerTotal * PENSION_PCT;
+
+      // Weekly NI estimate -> per hour
+      const weeklyGross = workerTotal * WEEKLY_HOURS;
+      const weeklyNI = Math.max(0, (weeklyGross - NI_WEEKLY_THRESHOLD) * NI_RATE);
+      const niPerHour = weeklyNI / WEEKLY_HOURS;
+
+      const clientRate = workerTotal + pension + niPerHour + ADMIN_EXPENSES;
+
+      baseOut.textContent = money(base);
+      holidayOut.textContent = money(holiday);
+      workerTotalOut.textContent = money(workerTotal);
+      clientOut.textContent = money(clientRate);
+    }
+
+    baseInput.addEventListener("input", calculate);
+    resetBtn.addEventListener("click", () => { baseInput.value = "13.00"; calculate(); });
+
+    copyBtn.addEventListener("click", async () => {
+      const text =
+`GestioStaff – Rate Estimate (ex VAT)
+Base worker rate: ${baseOut.textContent}/hour
+Holiday pay: ${holidayOut.textContent}/hour
+Total worker pay: ${workerTotalOut.textContent}/hour
+Estimated client cost: ${clientOut.textContent}/hour
+
+This is an approximate estimate for guidance only. Final rates may vary slightly depending on assignment requirements and demand.`;
+      try { await navigator.clipboard.writeText(text); } catch {}
+    });
+
+    calculate();
+  });
+</script>
+</body>
+</html>
