@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GestioStaff – Hourly Rate Calculator</title>
+  <style>
+    :root { --bg:#0b0c0f; --card:#141720; --muted:#9aa4b2; --text:#eef2f7; --accent:#ffd54a; --line:#252b3a; }
+    body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background: var(--bg); color: var(--text); }
+    .wrap { max-width: 980px; margin: 28px auto; padding: 0 16px; }
+    header { display:flex; gap:16px; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; }
+    h1 { margin:0; font-size: 20px; letter-spacing: .2px; }
+    .sub { margin-top:6px; color: var(--muted); font-size: 13px; line-height: 1.35; }
+    .grid { display:grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
+    @media (max-width: 900px){ .grid{ grid-template-columns: 1fr; } }
+
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
+    .card h2 { margin:0 0 10px 0; font-size: 14px; color: var(--muted); font-weight: 600; }
+    .row { display:grid; grid-template-columns: 1fr 160px; gap: 12px; align-items:center; padding: 8px 0; border-top: 1px solid rgba(255,255,255,.05); }
+    .row:first-of-type { border-top: 0; padding-top: 0; }
+    .label { font-size: 13px; color: var(--text); }
+    .hint { display:block; font-size: 12px; color: var(--muted); margin-top: 3px; }
+    input[type="number"]{
+      width:100%; box-sizing:border-box; padding:10px 10px; border-radius:10px;
+      border:1px solid var(--line); background:#0f121a; color:var(--text); font-size: 14px;
+      outline:none;
+    }
+    input[type="number"]:focus { border-color: rgba(255,213,74,.6); box-shadow: 0 0 0 3px rgba(255,213,74,.12); }
+    .pill {
+      display:inline-block; padding: 6px 10px; border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.10); color: var(--muted); font-size: 12px;
+    }
+    .result { display:flex; align-items:baseline; justify-content:space-between; gap:12px; padding: 12px 0; border-top: 1px solid rgba(255,255,255,.06); }
+    .result:first-of-type { border-top: 0; padding-top: 0; }
+    .big { font-size: 28px; font-weight: 750; letter-spacing: .2px; }
+    .money { color: var(--accent); }
+    table { width:100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { text-align:left; padding: 10px 0; border-top: 1px solid rgba(255,255,255,.06); font-size: 13px; }
+    th { color: var(--muted); font-weight: 600; }
+    td:last-child, th:last-child { text-align:right; }
+    .actions { display:flex; gap:10px; flex-wrap:wrap; margin-top: 12px; }
+    button{
+      cursor:pointer; border-radius: 10px; padding: 10px 12px; border:1px solid rgba(255,255,255,.12);
+      background:#0f121a; color: var(--text); font-weight: 600; font-size: 13px;
+    }
+    button.primary{ background: rgba(255,213,74,.14); border-color: rgba(255,213,74,.35); }
+    button:hover{ filter: brightness(1.05); }
+
+    /* Toggle switch */
+    .toggle { display:flex; align-items:center; gap:10px; }
+    .switch { position: relative; display:inline-block; width: 48px; height: 28px; }
+    .switch input { display:none; }
+    .slider {
+      position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0;
+      background:#0f121a; border:1px solid rgba(255,255,255,.14); border-radius: 999px;
+      transition:.2s;
+    }
+    .slider:before {
+      position:absolute; content:""; height:22px; width:22px; left:3px; top:2px;
+      background: rgba(255,255,255,.85); border-radius: 999px; transition:.2s;
+    }
+    input:checked + .slider { background: rgba(255,213,74,.14); border-color: rgba(255,213,74,.35); }
+    input:checked + .slider:before { transform: translateX(20px); background: rgba(255,213,74,.95); }
+
+    .foot { margin-top: 14px; color: var(--muted); font-size: 12px; line-height: 1.45; }
+    .ok { color: #7ee787; }
+
+    /* Client mode hides */
+    .client-hidden { display: none !important; }
+    .client-card-note { color: var(--muted); font-size: 12px; line-height: 1.4; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>GestioStaff – Hourly Rate Calculator</h1>
+        <div class="sub" id="subtitle">
+          Enter the worker pay rate (£/hour). The calculator outputs the <strong>client charge rate per hour</strong>.
+          <span class="pill">No VAT</span> <span class="pill">5h minimum (info only)</span>
+        </div>
+      </div>
+
+      <div class="toggle">
+        <span class="pill" id="modeLabel">Admin mode</span>
+        <label class="switch" title="Toggle Client Mode">
+          <input id="clientModeToggle" type="checkbox" />
+          <span class="slider"></span>
+        </label>
+      </div>
+    </header>
+
+    <div class="grid">
+      <section class="card">
+        <h2>Inputs</h2>
+
+        <div class="row">
+          <div class="label">
+            Worker pay rate (£/hour)
+            <span class="hint">Example: 13.00</span>
+          </div>
+          <div><input id="payRate" type="number" min="0" step="0.01" value="13.00" /></div>
+        </div>
+
+        <div class="row">
+          <div class="label">
+            Status
+            <span class="hint">Client mode hides internal breakdown and settings</span>
+          </div>
+          <div><span class="pill ok" id="statusPill">Ready</span></div>
+        </div>
+
+        <details id="adminSettings">
+          <summary>Admin settings (fixed defaults)</summary>
+
+          <div class="row" style="margin-top:10px;">
+            <div class="label">Holiday uplift (%)<span class="hint">Fixed uplift on worker pay</span></div>
+            <div><input id="holidayPct" type="number" min="0" step="0.0001" value="0.1207" /></div>
+          </div>
+
+          <div class="row">
+            <div class="label">Employer NI rate (%)<span class="hint">Used for the NI estimate</span></div>
+            <div><input id="niRate" type="number" min="0" step="0.0001" value="0.15" /></div>
+          </div>
+
+          <div class="row">
+            <div class="label">NI Secondary Threshold (weekly £)<span class="hint">Estimate uses weekly gross = pay × hours</span></div>
+            <div><input id="niSTWeekly" type="number" min="0" step="0.01" value="96" /></div>
+          </div>
+
+          <div class="row">
+            <div class="label">Assumed weekly hours (for NI estimate)<span class="hint">Per your requirement: 40</span></div>
+            <div><input id="hoursPerWeek" type="number" min="1" step="1" value="40" /></div>
+          </div>
+
+          <div class="row">
+            <div class="label">Employer pension (%)<span class="hint">Per your requirement: 3% from day one</span></div>
+            <div><input id="pensionPct" type="number" min="0" step="0.0001" value="0.03" /></div>
+          </div>
+
+          <div class="row">
+            <div class="label">Margin (£/hour)<span class="hint">Per your requirement: fixed £3.50</span></div>
+            <div><input id="margin" type="number" min="0" step="0.01" value="3.50" /></div>
+          </div>
+
+          <div class="row">
+            <div class="label">Minimum shift hours (info only)<span class="hint">Does not change hourly rate</span></div>
+            <div><input id="minShift" type="number" min="1" step="0.5" value="5" /></div>
+          </div>
+
+          <div class="foot">
+            NI is estimated using a weekly model: NI per hour = max(0, (weekly gross − weekly ST) × NI rate) ÷ hours/week.
+            Actual payroll NI can differ by NI category letter and actual weekly earnings pattern.
+          </div>
+        </details>
+
+        <div class="client-card-note" id="clientNote" style="display:none;">
+          Rates are calculated consistently using GestioStaff’s internal cost model. Final invoices are based on approved/deemed-approved timesheets.
+        </div>
+      </section>
+
+      <section class="card">
+        <h2 id="resultsTitle">Results</h2>
+
+        <div class="result">
+          <div class="label">Client charge rate (ex VAT)</div>
+          <div class="big money" id="chargeRate">£0.00/hr</div>
+        </div>
+
+        <div class="result">
+          <div class="label">Estimated total for minimum 5h shift (info only)</div>
+          <div class="big" id="minShiftTotal">£0.00</div>
+        </div>
+
+        <!-- Admin-only breakdown -->
+        <div id="adminBreakdown">
+          <table>
+            <thead>
+              <tr><th>Breakdown (per hour)</th><th>£/hour</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Worker base pay</td><td id="bPay">£0.00</td></tr>
+              <tr><td>Holiday uplift</td><td id="bHoliday">£0.00</td></tr>
+              <tr><td>Employer pension</td><td id="bPension">£0.00</td></tr>
+              <tr><td>Employer NI (estimate)</td><td id="bNI">£0.00</td></tr>
+              <tr><td>Margin</td><td id="bMargin">£0.00</td></tr>
+              <tr><th>Total</th><th id="bTotal">£0.00</th></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="actions">
+          <button class="primary" id="copyClientQuote">Copy client quote</button>
+          <button id="resetDefaults">Reset</button>
+          <button id="copyBreakdownBtn" class="client-hidden">Copy breakdown</button>
+        </div>
+
+        <div class="foot" id="quotePreview" style="margin-top:10px;"></div>
+      </section>
+    </div>
+  </div>
+
+<script>
+  const els = {
+    payRate: document.getElementById('payRate'),
+    holidayPct: document.getElementById('holidayPct'),
+    niRate: document.getElementById('niRate'),
+    niSTWeekly: document.getElementById('niSTWeekly'),
+    hoursPerWeek: document.getElementById('hoursPerWeek'),
+    pensionPct: document.getElementById('pensionPct'),
+    margin: document.getElementById('margin'),
+    minShift: document.getElementById('minShift'),
+
+    clientModeToggle: document.getElementById('clientModeToggle'),
+    modeLabel: document.getElementById('modeLabel'),
+    subtitle: document.getElementById('subtitle'),
+
+    statusPill: document.getElementById('statusPill'),
+    chargeRate: document.getElementById('chargeRate'),
+    minShiftTotal: document.getElementById('minShiftTotal'),
+
+    adminSettings: document.getElementById('adminSettings'),
+    adminBreakdown: document.getElementById('adminBreakdown'),
+    clientNote: document.getElementById('clientNote'),
+    resultsTitle: document.getElementById('resultsTitle'),
+
+    bPay: document.getElementById('bPay'),
+    bHoliday: document.getElementById('bHoliday'),
+    bPension: document.getElementById('bPension'),
+    bNI: document.getElementById('bNI'),
+    bMargin: document.getElementById('bMargin'),
+    bTotal: document.getElementById('bTotal'),
+
+    copyClientQuote: document.getElementById('copyClientQuote'),
+    copyBreakdownBtn: document.getElementById('copyBreakdownBtn'),
+    resetDefaults: document.getElementById('resetDefaults'),
+    quotePreview: document.getElementById('quotePreview'),
+  };
+
+  const DEFAULTS = {
+    payRate: 13.00,
+    holidayPct: 0.1207,
+    niRate: 0.15,
+    niSTWeekly: 96,
+    hoursPerWeek: 40,
+    pensionPct: 0.03,
+    margin: 3.50,
+    minShift: 5
+  };
+
+  function toNum(el) {
+    const v = Number(el?.value);
+    return Number.isFinite(v) ? v : 0;
+  }
+
+  function money(n) {
+    const x = Number.isFinite(n) ? n : 0;
+    return "£" + x.toFixed(2);
+  }
+
+  function calc() {
+    const pay = toNum(els.payRate);
+    const holidayPct = toNum(els.holidayPct);
+    const niRate = toNum(els.niRate);
+    const niSTWeekly = toNum(els.niSTWeekly);
+    const hours = Math.max(1, toNum(els.hoursPerWeek));
+    const pensionPct = toNum(els.pensionPct);
+    const margin = toNum(els.margin);
+    const minShift = Math.max(1, toNum(els.minShift));
+
+    const holiday = pay * holidayPct;
+    const pension = pay * pensionPct;
+
+    // Weekly NI estimate:
+    const weeklyGross = pay * hours;
+    const weeklyNI = Math.max(0, (weeklyGross - niSTWeekly) * niRate);
+    const niPerHour = weeklyNI / hours;
+
+    const total = pay + holiday + pension + niPerHour + margin;
+    const minShiftTotal = total * minShift;
+
+    els.chargeRate.textContent = money(total) + "/hr";
+    els.minShiftTotal.textContent = money(minShiftTotal);
+
+    // Admin breakdown fields (safe even if hidden)
+    els.bPay.textContent = money(pay);
+    els.bHoliday.textContent = money(holiday);
+    els.bPension.textContent = money(pension);
+    els.bNI.textContent = money(niPerHour);
+    els.bMargin.textContent = money(margin);
+    els.bTotal.textContent = money(total);
+
+    els.statusPill.textContent = "Calculated";
+    els.statusPill.className = "pill ok";
+
+    const clientQuote =
+`Rate (ex VAT): ${money(total)}/hour per worker.
+Minimum charge: ${minShift} hours per worker (minimum shift).`;
+
+    const adminQuote =
+`Rate (ex VAT): ${money(total)}/hour per worker.
+Includes: holiday uplift, employer NI (weekly estimate @ ${hours}h/week), employer pension (${(pensionPct*100).toFixed(2)}%), and agency margin.
+Minimum charge: ${minShift} hours (minimum shift).`;
+
+    els.quotePreview.textContent = els.clientModeToggle.checked ? clientQuote : adminQuote;
+
+    return { pay, holidayPct, niRate, niSTWeekly, hours, pensionPct, margin, minShift, holiday, pension, niPerHour, total, minShiftTotal, clientQuote, adminQuote };
+  }
+
+  async function copy(text) {
+    try {
+      await navigator.clipboard.writeText(text);
+      els.statusPill.textContent = "Copied";
+      els.statusPill.className = "pill ok";
+      setTimeout(() => { els.statusPill.textContent = "Calculated"; }, 900);
+    } catch (e) {
+      els.statusPill.textContent = "Copy failed";
+      els.statusPill.className = "pill";
+    }
+  }
+
+  function setClientMode(isClient) {
+    els.modeLabel.textContent = isClient ? "Client mode" : "Admin mode";
+
+    // Hide admin-only UI
+    els.adminSettings.classList.toggle("client-hidden", isClient);
+    els.adminBreakdown.classList.toggle("client-hidden", isClient);
+    els.copyBreakdownBtn.classList.toggle("client-hidden", isClient);
+
+    // Client note
+    els.clientNote.style.display = isClient ? "block" : "none";
+
+    // Title tweak
+    els.resultsTitle.textContent = isClient ? "Client Rate" : "Results";
+
+    // Recalc to update preview text
+    calc();
+  }
+
+  // Events
+  [
+    els.payRate, els.holidayPct, els.niRate, els.niSTWeekly, els.hoursPerWeek,
+    els.pensionPct, els.margin, els.minShift
+  ].forEach(el => el && el.addEventListener('input', calc));
+
+  els.clientModeToggle.addEventListener('change', (e) => setClientMode(e.target.checked));
+
+  els.copyClientQuote.addEventListener('click', () => {
+    const r = calc();
+    copy(r.clientQuote);
+  });
+
+  els.copyBreakdownBtn.addEventListener('click', () => {
+    const r = calc();
+    const breakdown =
+`GestioStaff – Hourly Rate Breakdown
+Worker pay: ${money(r.pay)}
+Holiday uplift (${(r.holidayPct*100).toFixed(2)}%): ${money(r.holiday)}
+Employer pension (${(r.pensionPct*100).toFixed(2)}%): ${money(r.pension)}
+Employer NI (weekly estimate): ${money(r.niPerHour)}
+Margin: ${money(r.margin)}
+Total charge rate (ex VAT): ${money(r.total)}/hr
+Minimum shift (${r.minShift}h) total: ${money(r.minShiftTotal)}`;
+    copy(breakdown);
+  });
+
+  els.resetDefaults.addEventListener('click', () => {
+    els.payRate.value = DEFAULTS.payRate.toFixed(2);
+    els.holidayPct.value = DEFAULTS.holidayPct;
+    els.niRate.value = DEFAULTS.niRate;
+    els.niSTWeekly.value = DEFAULTS.niSTWeekly;
+    els.hoursPerWeek.value = DEFAULTS.hoursPerWeek;
+    els.pensionPct.value = DEFAULTS.pensionPct;
+    els.margin.value = DEFAULTS.margin.toFixed(2);
+    els.minShift.value = DEFAULTS.minShift;
+    calc();
+  });
+
+  // Initial render (admin mode default)
+  setClientMode(false);
+</script>
+</body>
+</html>
