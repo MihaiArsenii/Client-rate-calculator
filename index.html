@@ -433,9 +433,15 @@
 
     .success{ text-align:center; padding:36px 24px; }
     .success .tick{
-      width:52px; height:52px; border-radius:50%;
+      width:64px; height:64px; border-radius:50%;
       background:rgba(88,214,141,.10); border:1px solid rgba(88,214,141,.3);
       display:flex; align-items:center; justify-content:center; margin:0 auto 18px;
+      font-size:30px; line-height:1;
+      animation:pop .45s cubic-bezier(.2,1.4,.4,1) both;
+    }
+    @keyframes pop{
+      from{ opacity:0; transform:scale(.4); }
+      to{ opacity:1; transform:scale(1); }
     }
     .success h2{ font-family:'Syne',sans-serif; font-size:20px; font-weight:700; margin-bottom:10px; }
     .success p{ color:var(--muted2); font-size:13.5px; line-height:1.65; max-width:420px; margin:0 auto 20px; }
@@ -612,11 +618,7 @@
       </form>
 
       <div class="success" id="successPanel" hidden>
-        <div class="tick" aria-hidden="true">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path d="M5 12.5l4.5 4.5L19 7.5" stroke="#58d68d" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </div>
+        <div class="tick" aria-hidden="true">🎉</div>
         <h2>Request sent</h2>
         <p id="successMsg"></p>
         <button class="btn-secondary" id="newRequest" type="button">Send another request</button>
@@ -791,14 +793,17 @@
     openPicker = null;
   }
 
-  function buildPicker(trigger){
+  function buildPicker(trigger, firstHour){
     const field = trigger.closest('.field');
     const pop = document.createElement('div');
     pop.className = 'tp-pop';
     pop.hidden = true;
     pop.setAttribute('role','dialog');
 
-    const hours = Array.from({length:24}, (_,h) => String(h).padStart(2,'0'));
+    // Start the list at the hour people actually pick, wrapping past midnight,
+    // so nobody scrolls through the small hours to reach an evening shift.
+    const hours = Array.from({length:24},
+      (_,i) => String((i + (firstHour || 0)) % 24).padStart(2,'0'));
     const mins  = [];
     for(let m = 0; m < 60; m += REQUEST.minuteStep) mins.push(String(m).padStart(2,'0'));
 
@@ -885,8 +890,8 @@
   });
   document.addEventListener('keydown', e => { if(e.key === 'Escape') closePicker(); });
 
-  buildPicker($('startTime'));
-  buildPicker($('finishTime'));
+  buildPicker($('startTime'), 6);     // shifts rarely start before 6am
+  buildPicker($('finishTime'), 12);   // and rarely finish before midday
 
 
   /* ═══════════════════════════════════════════
@@ -1335,7 +1340,13 @@
         `We've emailed a copy to ${payload.email}. Someone from GestioStaff will confirm your staff as soon as possible — just reply to that email if anything needs changing.`;
       form.hidden = true;
       $('successPanel').hidden = false;
-      $('requestCard').scrollIntoView({ behavior:'smooth', block:'center' });
+
+      // Inside an iframe the page itself doesn't scroll, so ask the parent
+      // to bring the top of the embed back into view.
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      if(window.parent !== window){
+        window.parent.postMessage({ gsScrollTop: true }, '*');
+      }
 
     }catch(err){
       statusBox.innerHTML = `That didn't send. Try again, or email us directly at <a href="mailto:${REQUEST.contactEmail}">${REQUEST.contactEmail}</a>.`;
