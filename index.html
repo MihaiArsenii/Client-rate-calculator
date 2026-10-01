@@ -26,6 +26,7 @@
       --radius:16px;
     }
     *{ box-sizing:border-box; margin:0; padding:0; }
+    [hidden]{ display:none !important; }
 
     body{
       font-family:'DM Sans', sans-serif;
@@ -1502,10 +1503,22 @@ For an exact quote: ${REQUEST.contactEmail}`;
   // never gets its own scrollbar.
   (function reportHeight(){
     if(window.parent === window) return;
-    const send = () => window.parent.postMessage(
-      { gsHeight: document.documentElement.scrollHeight }, '*'
-    );
-    if(window.ResizeObserver) new ResizeObserver(send).observe(document.body);
+    const wrap = document.querySelector('.wrap');
+    let last = 0;
+    const send = () => {
+      const pad = parseFloat(getComputedStyle(document.body).paddingBottom) || 0;
+      // Include an open date or time picker, which hangs below its field.
+      let bottom = wrap.getBoundingClientRect().bottom;
+      document.querySelectorAll('.tp-pop:not([hidden]), .dp-pop:not([hidden])').forEach(p => {
+        bottom = Math.max(bottom, p.getBoundingClientRect().bottom);
+      });
+      const h = Math.ceil(bottom + window.scrollY + pad);
+      if(Math.abs(h - last) < 2) return;
+      last = h;
+      window.parent.postMessage({ gsHeight: h }, '*');
+    };
+    if(window.ResizeObserver) new ResizeObserver(send).observe(wrap);
+    document.addEventListener('click', () => setTimeout(send, 50));
     window.addEventListener('load', send);
     send();
   })();
