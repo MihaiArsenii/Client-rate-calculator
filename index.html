@@ -262,6 +262,46 @@
     }
     .add-role:hover{ border-color:var(--accent-border); background:rgba(255,213,74,.04); }
 
+    /* ── DAYS (one block per day / shift) ── */
+    .day-list.multi .day{
+      border:1px solid rgba(255,255,255,.08); border-radius:18px;
+      background:rgba(255,255,255,.015); padding:16px; margin-bottom:14px;
+    }
+    .day-head{ display:none; align-items:center; justify-content:space-between; gap:10px; margin-bottom:14px; }
+    .day-list.multi .day-head{ display:flex; }
+    .day-title{ font-family:'Syne',sans-serif; font-weight:700; font-size:15px; color:var(--text); }
+    .day-title span{ font-family:'DM Sans',sans-serif; font-weight:400; font-size:13px; color:var(--muted2); margin-left:8px; }
+    .remove-day{
+      background:transparent; border:1px solid var(--line); color:var(--muted);
+      border-radius:10px; padding:7px 12px; font-size:12.5px; white-space:nowrap;
+    }
+    .remove-day:hover{ color:var(--red); border-color:rgba(255,107,107,.35); }
+    .day .inputs-grid{ margin-bottom:16px; }
+    .day-sub{
+      font-family:'DM Mono',monospace; font-size:10px; letter-spacing:.12em;
+      text-transform:uppercase; color:var(--muted); margin:0 0 10px;
+    }
+    .day-list.multi .day .add-role{ margin-bottom:0; }
+    .add-day{
+      background:var(--accent-dim); border:1px solid var(--accent-border);
+      color:var(--accent); width:100%; padding:13px; font-weight:500;
+      border-radius:var(--radius); font-size:13.5px; margin-bottom:8px;
+    }
+    .add-day:hover{ background:rgba(255,213,74,.2); }
+    .add-day:disabled{ opacity:.4; cursor:default; }
+    .add-day-hint{ font-size:12.5px; color:var(--muted); line-height:1.55; margin:0 0 22px; }
+    .sum-day{
+      font-size:13px; color:var(--text); font-weight:500;
+      margin:4px 0 8px; display:flex; flex-wrap:wrap; gap:4px 10px;
+    }
+    .sum-day span{ color:var(--muted2); font-weight:400; }
+    .sum-day-total{
+      display:flex; justify-content:space-between; font-size:13px; color:var(--muted2);
+      margin:-4px 0 18px; padding:0 4px;
+    }
+    .sum-day-total span:last-child{ font-family:'DM Mono',monospace; color:var(--text); }
+    .sum-skip{ font-size:12.5px; color:var(--muted); margin:0 0 14px; }
+
     /* ── BREAKDOWN ── */
     .breakdown{
       border:1px solid var(--line); border-radius:var(--radius);
@@ -537,41 +577,7 @@
           <button type="button" class="linkish" id="forgetBtn">Forget them</button>
         </div>
 
-        <div class="divider"><span>The shift</span></div>
-        <div class="inputs-grid">
-          <div class="field span-2" id="f-date">
-            <label id="dateLabel">Event date</label>
-            <button type="button" class="tp-trigger empty" id="eventDate" data-date=""
-                    aria-haspopup="dialog" aria-expanded="false" aria-labelledby="dateLabel"
-                    style="font-size:18px">Choose a date</button>
-          </div>
-
-          <div class="field" id="f-start" data-timefield>
-            <label id="startLabel">Start time</label>
-            <button type="button" class="tp-trigger empty" id="startTime" data-time=""
-                    aria-haspopup="dialog" aria-expanded="false" aria-labelledby="startLabel">--:--</button>
-          </div>
-
-          <div class="field" id="f-finish" data-timefield>
-            <label id="finishLabel">Finish time</label>
-            <button type="button" class="tp-trigger empty" id="finishTime" data-time=""
-                    aria-haspopup="dialog" aria-expanded="false" aria-labelledby="finishLabel">--:--</button>
-          </div>
-
-          <div class="field span-2" id="f-break">
-            <label for="breakMins">Unpaid break — deducted from the hours charged</label>
-            <select id="breakMins">
-              <option value="0">No break</option>
-              <option value="15">15 minutes</option>
-              <option value="30">30 minutes</option>
-              <option value="45">45 minutes</option>
-              <option value="60">1 hour</option>
-              <option value="90">1 hour 30</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="divider"><span>Staff needed</span></div>
+        <div class="divider"><span>Shifts and staff</span></div>
         <p class="pay-note">
           <strong>Our minimum pay rate is £13.00 an hour.</strong>
           Above that, set whatever suits your budget — but worth knowing that our staff choose
@@ -579,8 +585,12 @@
           Shifts paying above the going rate fill faster and tend to attract people who've
           worked that kind of room before.
         </p>
-        <div id="roleRows"></div>
-        <button type="button" class="add-role" id="addRole">+ Add another role</button>
+        <div class="day-list" id="dayList"></div>
+        <button type="button" class="add-day" id="addDay">+ Add another day</button>
+        <p class="add-day-hint" id="addDayHint">
+          Need staff on more than one day, or different hours on another day? Add another day.
+          It copies the times and staff from the day above, so you only change what's different.
+        </p>
 
         <div class="divider"><span>What you'll pay</span></div>
         <div id="requestSummary" aria-live="polite"></div>
@@ -891,8 +901,7 @@
   });
   document.addEventListener('keydown', e => { if(e.key === 'Escape') closePicker(); });
 
-  buildPicker($('startTime'), 6);     // shifts rarely start before 6am
-  buildPicker($('finishTime'), 12);   // and rarely finish before midday
+  // Pickers are built for each day as it's added (see addDay below).
 
 
   /* ═══════════════════════════════════════════
@@ -1004,42 +1013,64 @@
     paintTrigger();
   }
 
-  buildDatePicker($('eventDate'));
 
 
   /* ═══════════════════════════════════════════
      REQUEST FORM
      ═══════════════════════════════════════════ */
   const form       = $('requestForm');
-  const roleRows   = $('roleRows');
+  const dayList    = $('dayList');
   const summaryBox = $('requestSummary');
   const statusBox  = $('formStatus');
+  const MAX_DAYS   = 14;
   let   loadedAt   = Date.now();
-  let   roleSeq    = 0;
+  let   seq        = 0;        // gives every added field a unique id
   let   vatOn      = false;
 
-  function shiftLengthHours(){
-    const start  = $('startTime').dataset.time;
-    const finish = $('finishTime').dataset.time;
-    if(!start || !finish) return 0;
+  const BREAKS = [[0,'No break'],[15,'15 minutes'],[30,'30 minutes'],[45,'45 minutes'],[60,'1 hour'],[90,'1 hour 30']];
+  const allDays = () => Array.from(dayList.querySelectorAll('[data-day]'));
 
+  function hoursFor(start, finish, breakMinutes){
+    if(!start || !finish) return 0;
     const s = start.split(':'), f = finish.split(':');
     let mins = (+f[0]*60 + +f[1]) - (+s[0]*60 + +s[1]);
     if(mins <= 0) mins += 24*60;                   // finishes the next day
-
-    mins -= (parseInt($('breakMins').value, 10) || 0);
+    mins -= (breakMinutes || 0);
     return Math.max(0, mins/60);
   }
 
-  function addRoleRow(prefill){
-    const i = ++roleSeq;
+  function dayData(day){
+    return {
+      date:   day.querySelector('[data-date-trigger]').dataset.date || '',
+      start:  day.querySelector('[data-start]').dataset.time || '',
+      finish: day.querySelector('[data-finish]').dataset.time || '',
+      breakMinutes: parseInt(day.querySelector('[data-break]').value, 10) || 0
+    };
+  }
+
+  // Every role row in a day. With raw=true, rows that aren't filled in yet are kept (for copying).
+  function linesOf(day, raw){
+    const rows = Array.from(day.querySelectorAll('.role-row')).map(row => ({
+      role: row.querySelector('[data-role]').value,
+      qty:  parseInt(row.querySelector('[data-qty]').value, 10) || 0,
+      pay:  parseFloat(row.querySelector('[data-pay]').value) || 0
+    }));
+    return raw ? rows : rows.filter(l => l.qty > 0 && l.pay > 0);
+  }
+
+  function shortDate(iso){
+    return iso ? new Date(iso + 'T00:00:00').toLocaleDateString('en-GB', { weekday:'short', day:'numeric', month:'short' }) : '';
+  }
+
+  function addRoleRow(day, prefill){
+    const i = ++seq;
     const row = document.createElement('div');
     row.className = 'role-row';
     row.innerHTML = `
       <div class="field field-role">
         <label for="role-${i}">Type of staff</label>
         <select id="role-${i}" data-role>
-          ${REQUEST.roles.map(r => `<option value="${esc(r)}">${esc(r)}</option>`).join('')}
+          ${REQUEST.roles.map(r => `<option value="${esc(r)}"${prefill && prefill.role === r ? ' selected' : ''}>${esc(r)}</option>`).join('')}
         </select>
       </div>
       <div class="field">
@@ -1059,60 +1090,168 @@
         </div>
       </div>
       <button type="button" class="remove-role">Remove</button>`;
-    roleRows.appendChild(row);
-    syncRemoveButtons();
+    day.querySelector('[data-roles]').appendChild(row);
+    syncRemoveButtons(day);
     renderRequest();
   }
 
-  function syncRemoveButtons(){
-    const rows = roleRows.querySelectorAll('.role-row');
+  function syncRemoveButtons(day){
+    const rows = day.querySelectorAll('.role-row');
     rows.forEach(r => {
       r.querySelector('.remove-role').style.visibility = rows.length > 1 ? 'visible' : 'hidden';
     });
   }
 
-  roleRows.addEventListener('click', e => {
-    if(e.target.classList.contains('remove-role')){
-      e.target.closest('.role-row').remove();
-      syncRemoveButtons();
+  // One block per day. A new day copies the times, break and staff of the day it's copied from.
+  function addDay(copyFrom){
+    if(allDays().length >= MAX_DAYS) return null;
+    const n = ++seq;
+    const day = document.createElement('div');
+    day.className = 'day';
+    day.setAttribute('data-day', '');
+    day.innerHTML = `
+      <div class="day-head">
+        <div class="day-title" data-title>Day</div>
+        <button type="button" class="remove-day" data-remove-day>Remove this day</button>
+      </div>
+      <div class="inputs-grid">
+        <div class="field span-2" data-f="date">
+          <label id="dateLabel-${n}">Event date</label>
+          <button type="button" class="tp-trigger empty" data-date-trigger data-date=""
+                  aria-haspopup="dialog" aria-expanded="false" aria-labelledby="dateLabel-${n}"
+                  style="font-size:18px">Choose a date</button>
+        </div>
+        <div class="field" data-f="start" data-timefield>
+          <label id="startLabel-${n}">Start shift</label>
+          <button type="button" class="tp-trigger empty" data-start data-time=""
+                  aria-haspopup="dialog" aria-expanded="false" aria-labelledby="startLabel-${n}">--:--</button>
+        </div>
+        <div class="field" data-f="finish" data-timefield>
+          <label id="finishLabel-${n}">Finish shift</label>
+          <button type="button" class="tp-trigger empty" data-finish data-time=""
+                  aria-haspopup="dialog" aria-expanded="false" aria-labelledby="finishLabel-${n}">--:--</button>
+        </div>
+        <div class="field span-2" data-f="break">
+          <label for="breakMins-${n}">Unpaid break — deducted from the hours charged</label>
+          <select id="breakMins-${n}" data-break>
+            ${BREAKS.map(([v, t]) => `<option value="${v}">${t}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="day-sub">Staff needed</div>
+      <div data-roles></div>
+      <button type="button" class="add-role" data-add-role>+ Add another role</button>`;
+    dayList.appendChild(day);
+
+    if(copyFrom){
+      const src = dayData(copyFrom);
+      day.querySelector('[data-start]').dataset.time = src.start;
+      day.querySelector('[data-finish]').dataset.time = src.finish;
+      day.querySelector('[data-break]').value = String(src.breakMinutes);
+    }
+    buildDatePicker(day.querySelector('[data-date-trigger]'));
+    buildPicker(day.querySelector('[data-start]'), 6);     // shifts rarely start before 6am
+    buildPicker(day.querySelector('[data-finish]'), 12);   // and rarely finish before midday
+
+    if(copyFrom) linesOf(copyFrom, true).forEach(l => addRoleRow(day, l));
+    if(!day.querySelector('.role-row')) addRoleRow(day);
+    syncDays();
+    renderRequest();
+    return day;
+  }
+
+  function syncDays(){
+    const list = allDays();
+    const multi = list.length > 1;
+    dayList.classList.toggle('multi', multi);
+    list.forEach((day, i) => {
+      const date = shortDate(dayData(day).date);
+      day.querySelector('[data-title]').innerHTML = `Day ${i + 1}${date ? `<span>${esc(date)}</span>` : ''}`;
+      day.querySelector('[data-remove-day]').hidden = !multi;
+    });
+    $('addDay').disabled = list.length >= MAX_DAYS;
+    $('addDay').textContent = list.length >= MAX_DAYS ? `Up to ${MAX_DAYS} days per request` : '+ Add another day';
+  }
+
+  dayList.addEventListener('click', e => {
+    const day = e.target.closest('[data-day]');
+    if(!day) return;
+    if(e.target.closest('[data-remove-day]')){
+      day.remove();
+      syncDays();
       renderRequest();
+    } else if(e.target.classList.contains('remove-role')){
+      e.target.closest('.role-row').remove();
+      syncRemoveButtons(day);
+      renderRequest();
+    } else if(e.target.closest('[data-add-role]')){
+      addRoleRow(day);
     }
   });
-  $('addRole').addEventListener('click', () => addRoleRow());
+
+  $('addDay').addEventListener('click', () => {
+    const list = allDays();
+    const day = addDay(list[list.length - 1]);
+    if(!day) return;
+    clearInvalid();
+    const trigger = day.querySelector('[data-date-trigger]');
+    trigger.focus();
+    day.scrollIntoView({ behavior:'smooth', block:'start' });
+  });
 
   function buildQuote(){
-    const worked = shiftLengthHours();
-    const billable = worked > 0 ? Math.max(worked, REQUEST.minChargeableHours) : 0;
-
-    const lines = Array.from(roleRows.querySelectorAll('.role-row'))
-      .map(row => ({
-        role: row.querySelector('[data-role]').value,
-        qty:  parseInt(row.querySelector('[data-qty]').value, 10) || 0,
-        pay:  parseFloat(row.querySelector('[data-pay]').value) || 0
-      }))
-      .filter(l => l.qty > 0 && l.pay > 0)
-      .map(l => {
+    const days = allDays().map((el, index) => {
+      const d = dayData(el);
+      const worked = hoursFor(d.start, d.finish, d.breakMinutes);
+      const billable = worked > 0 ? Math.max(worked, REQUEST.minChargeableHours) : 0;
+      const lines = linesOf(el).map(l => {
         const parts = rateParts(l.pay);
         return { ...l, parts, rate: parts.total, hours: billable, total: parts.total * billable * l.qty };
       });
+      return {
+        el, index, ...d, workedHours: worked, billableHours: billable, lines,
+        staffCount: lines.reduce((a,l) => a + l.qty, 0),
+        subtotal: lines.reduce((a,l) => a + l.total, 0)
+      };
+    });
 
-    const subtotal = lines.reduce((a,l) => a + l.total, 0);
+    const ready = days.filter(q => q.workedHours > 0 && q.lines.length);
+    const subtotal = ready.reduce((a,q) => a + q.subtotal, 0);
     const vat = vatOn ? subtotal * REQUEST.vatPct / 100 : 0;
+    const allLines = days.flatMap(q => q.lines);
 
     return {
-      workedHours: worked, billableHours: billable, lines,
-      staffCount: lines.reduce((a,l) => a + l.qty, 0),
-      subtotal, vat, total: subtotal + vat,
+      days, ready, subtotal, vat, total: subtotal + vat,
       vatApplied: vatOn,
-      belowMin: lines.some(l => l.pay < REQUEST.minPayRate),
-      belowNMW: lines.some(l => l.pay < ASSUMPTIONS.nmwRate)
+      staffShifts: ready.reduce((a,q) => a + q.staffCount, 0),
+      belowMin: allLines.some(l => l.pay < REQUEST.minPayRate),
+      belowNMW: allLines.some(l => l.pay < ASSUMPTIONS.nmwRate)
     };
   }
 
-  function renderRequest(){
-    const q = buildQuote();
+  function lineBlock(l, hours){
+    const p = l.parts;
+    return `
+      <div class="breakdown">
+        <div class="bd-head">
+          <div class="bd-title">${esc(l.role)} <span>× ${l.qty}</span></div>
+          <div class="bd-rate">${money(p.total)}<span class="unit">/hr</span></div>
+        </div>
+        <div class="bd-line"><span>Worker pay rate</span><span>${money(p.pay)}</span></div>
+        <div class="bd-line"><span>Holiday pay (12.07%)</span><span>${money(p.holiday)}</span></div>
+        <div class="bd-line sum">
+          <span>${money(p.total)}/hr × ${tidyHours(hours)}hrs × ${l.qty}</span>
+          <span>${money(l.total)}</span>
+        </div>
+      </div>`;
+  }
 
-    if(!q.workedHours || !q.lines.length){
+  function renderRequest(){
+    syncDays();
+    const q = buildQuote();
+    const multi = q.days.length > 1;
+
+    if(!q.ready.length){
       summaryBox.innerHTML = `
         <div class="notice">
           Add the times and at least one role with a pay rate, and your full cost breakdown will appear here.
@@ -1120,21 +1259,18 @@
       return;
     }
 
-    const blocks = q.lines.map(l => {
-      const p = l.parts;
-      return `
-        <div class="breakdown">
-          <div class="bd-head">
-            <div class="bd-title">${esc(l.role)} <span>× ${l.qty}</span></div>
-            <div class="bd-rate">${money(p.total)}<span class="unit">/hr</span></div>
-          </div>
-          <div class="bd-line"><span>Worker pay rate</span><span>${money(p.pay)}</span></div>
-          <div class="bd-line"><span>Holiday pay (12.07%)</span><span>${money(p.holiday)}</span></div>
-          <div class="bd-line sum">
-            <span>${money(p.total)}/hr × ${tidyHours(q.billableHours)}hrs × ${l.qty}</span>
-            <span>${money(l.total)}</span>
-          </div>
-        </div>`;
+    const blocks = q.days.map(d => {
+      const label = `Day ${d.index + 1}`;
+      if(!(d.workedHours > 0 && d.lines.length)){
+        return multi ? `<p class="sum-skip">${label}: add the times and a pay rate to include this day.</p>` : '';
+      }
+      const head = multi
+        ? `<div class="sum-day">${label}${d.date ? ` · ${esc(shortDate(d.date))}` : ''}<span>${esc(d.start)}–${esc(d.finish)} · ${tidyHours(d.workedHours)} hrs each</span></div>`
+        : '';
+      const foot = multi
+        ? `<div class="sum-day-total"><span>${label} total</span><span>${money(d.subtotal)}</span></div>`
+        : '';
+      return head + d.lines.map(l => lineBlock(l, d.billableHours)).join('') + foot;
     }).join('');
 
     const vatRow = q.vatApplied
@@ -1147,6 +1283,26 @@
            below that before sending your request.
          </div>` : '';
 
+    let firstLines;
+    if(multi){
+      firstLines = q.ready.map(d => `
+        <div class="tot-line">
+          <span>Day ${d.index + 1}${d.date ? ` · ${esc(shortDate(d.date))}` : ''} — ${d.staffCount} ${d.staffCount === 1 ? 'person' : 'people'}</span>
+          <span>${money(d.subtotal)}</span>
+        </div>`).join('');
+    } else {
+      const d = q.ready[0];
+      firstLines = `
+        <div class="tot-line">
+          <span>${d.staffCount} ${d.staffCount === 1 ? 'person' : 'people'} × ${tidyHours(d.billableHours)}hrs chargeable</span>
+          <span>${money(q.subtotal)}</span>
+        </div>`;
+    }
+
+    const hoursNote = multi
+      ? 'Hours are per person, after each day\'s break.'
+      : `${tidyHours(q.ready[0].workedHours)} hours per person after the break.`;
+
     summaryBox.innerHTML = `
       ${blocks}
       <div class="vat-toggle">
@@ -1155,18 +1311,15 @@
                 aria-pressed="${q.vatApplied}" aria-label="Add VAT"></button>
       </div>
       <div class="totals">
-        <div class="tot-line">
-          <span>${q.staffCount} ${q.staffCount === 1 ? 'person' : 'people'} × ${tidyHours(q.billableHours)}hrs chargeable</span>
-          <span>${money(q.subtotal)}</span>
-        </div>
+        ${firstLines}
         ${vatRow}
         <div class="tot-line grand">
-          <span>Total${q.vatApplied ? ' including VAT' : ', excluding VAT'}</span>
+          <span>Total${multi ? ` for ${q.ready.length} days` : ''}${q.vatApplied ? ' including VAT' : ', excluding VAT'}</span>
           <span>${money(q.total)}</span>
         </div>
       </div>
       <div class="notice">
-        ${tidyHours(q.workedHours)} hours per person after the break.
+        ${hoursNote}
         This is an estimate based on the rates you've entered, not an invoice.
         ${rateNote}
       </div>`;
@@ -1228,6 +1381,14 @@
     statusBox.classList.remove('error');
   }
 
+  function markInvalidEl(fieldEl, focusEl, message){
+    if(fieldEl) fieldEl.classList.add('invalid');
+    if(focusEl) focusEl.focus();
+    statusBox.textContent = message;
+    statusBox.classList.add('error');
+    return false;
+  }
+
   function validate(){
     clearInvalid();
 
@@ -1238,36 +1399,37 @@
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email))
       return markInvalid('f-email','email','Check the email address — we can\'t send your confirmation without it.');
 
-    if(!$('eventDate').dataset.date)
-      return markInvalid('f-date','eventDate','Choose the event date.');
-
-    if(!$('startTime').dataset.time) return markInvalid('f-start','startTime','Choose a start time.');
-    if(!$('finishTime').dataset.time) return markInvalid('f-finish','finishTime','Choose a finish time.');
-
     const q = buildQuote();
-    if(q.workedHours <= 0)
-      return markInvalid('f-break','breakMins','The break is longer than the shift. Check the times.');
+    const multi = q.days.length > 1;
+    for(const d of q.days){
+      const day = d.el;
+      const pre = multi ? `Day ${d.index + 1}: ` : '';
+      const f = name => day.querySelector(`[data-f="${name}"]`);
 
-    const lowRow = Array.from(roleRows.querySelectorAll('.role-row')).find(row => {
-      const v = parseFloat(row.querySelector('[data-pay]').value) || 0;
-      return v > 0 && v < REQUEST.minPayRate;
-    });
-    if(lowRow){
-      const input = lowRow.querySelector('[data-pay]');
-      input.closest('.field').classList.add('invalid');
-      input.focus();
-      statusBox.textContent =
-        `Our minimum pay rate is £${REQUEST.minPayRate.toFixed(2)} an hour. Please raise that rate to continue.`;
-      statusBox.classList.add('error');
-      return false;
-    }
+      if(!d.date)
+        return markInvalidEl(f('date'), day.querySelector('[data-date-trigger]'), pre + (multi ? 'choose the date.' : 'Choose the event date.'));
+      if(!d.start)
+        return markInvalidEl(f('start'), day.querySelector('[data-start]'), pre + (multi ? 'choose when the shift starts.' : 'Choose when the shift starts.'));
+      if(!d.finish)
+        return markInvalidEl(f('finish'), day.querySelector('[data-finish]'), pre + (multi ? 'choose when the shift finishes.' : 'Choose when the shift finishes.'));
+      if(d.workedHours <= 0)
+        return markInvalidEl(f('break'), day.querySelector('[data-break]'), pre + (multi ? 'the break' : 'The break') + ' is longer than the shift. Check the times.');
 
-    if(!q.lines.length){
-      const firstPay = roleRows.querySelector('[data-pay]');
-      if(firstPay){ firstPay.closest('.field').classList.add('invalid'); firstPay.focus(); }
-      statusBox.textContent = 'Add how many staff you need and the hourly rate you want to pay them.';
-      statusBox.classList.add('error');
-      return false;
+      const lowRow = Array.from(day.querySelectorAll('.role-row')).find(row => {
+        const v = parseFloat(row.querySelector('[data-pay]').value) || 0;
+        return v > 0 && v < REQUEST.minPayRate;
+      });
+      if(lowRow){
+        const input = lowRow.querySelector('[data-pay]');
+        return markInvalidEl(input.closest('.field'), input,
+          pre + `${multi ? 'our' : 'Our'} minimum pay rate is £${REQUEST.minPayRate.toFixed(2)} an hour. Please raise that rate to continue.`);
+      }
+
+      if(!d.lines.length){
+        const firstPay = day.querySelector('[data-pay]');
+        return markInvalidEl(firstPay && firstPay.closest('.field'), firstPay,
+          pre + (multi ? 'add' : 'Add') + ' how many staff you need and the hourly rate you want to pay them.');
+      }
     }
 
     if(!$('confirmDetails').checked)
@@ -1299,17 +1461,21 @@
       company:        $('company').value.trim(),
       contact:        $('contact').value.trim(),
       email:          $('email').value.trim(),
-      date:           $('eventDate').dataset.date,
-      start:          $('startTime').dataset.time,
-      finish:         $('finishTime').dataset.time,
-      breakMinutes:   parseInt($('breakMins').value, 10) || 0,
-      hoursPerPerson: q.workedHours,
-      chargeableHours:q.billableHours,
-      staffCount:     q.staffCount,
-      lines:          q.lines.map(l => ({
-                        role: l.role, qty: l.qty, pay: l.pay,
-                        rate: l.rate, hours: l.hours, total: l.total
+      shifts:         q.days.map(d => ({
+                        date:            d.date,
+                        start:           d.start,
+                        finish:          d.finish,
+                        breakMinutes:    d.breakMinutes,
+                        hoursPerPerson:  d.workedHours,
+                        chargeableHours: d.billableHours,
+                        staffCount:      d.staffCount,
+                        lines:           d.lines.map(l => ({
+                                           role: l.role, qty: l.qty, pay: l.pay,
+                                           rate: l.rate, hours: l.hours, total: l.total
+                                         })),
+                        subtotal:        d.subtotal
                       })),
+      staffCount:     q.staffShifts,
       subtotal:       q.subtotal,
       vatApplied:     q.vatApplied,
       vatPct:         REQUEST.vatPct,
@@ -1359,21 +1525,10 @@
   });
 
   function clearShiftDetails(){
-    const dt = $('eventDate');
-    dt.dataset.date = '';
-    dt.textContent = 'Choose a date';
-    dt.classList.add('empty');
-    ['startTime','finishTime'].forEach(id => {
-      const t = $(id);
-      t.dataset.time = '';
-      t.textContent = '--:--';
-      t.classList.add('empty');
-    });
-    $('breakMins').value = '0';
+    closePicker();
+    dayList.innerHTML = '';
     $('confirmDetails').checked = false;
-    roleRows.innerHTML = '';
-    roleSeq = 0;
-    addRoleRow();
+    addDay();
     clearInvalid();
     renderRequest();
   }
@@ -1385,7 +1540,8 @@
     $('successPanel').hidden = true;
     form.hidden = false;
     loadedAt = Date.now();
-    $('eventDate').focus();
+    const firstDate = dayList.querySelector('[data-date-trigger]');
+    if(firstDate) firstDate.focus();
   });
 
 
@@ -1480,8 +1636,8 @@ For an exact quote: ${REQUEST.contactEmail}`;
 
   // Carry the calculator's rate up into the request form.
   $('goToRequest').addEventListener('click', () => {
-    const firstPay = roleRows.querySelector('[data-pay]');
-    const firstQty = roleRows.querySelector('[data-qty]');
+    const firstPay = dayList.querySelector('[data-pay]');
+    const firstQty = dayList.querySelector('[data-qty]');
     if(firstPay) firstPay.value = (parseFloat(els.workerPay.value) || 0).toFixed(2);
     if(firstQty) firstQty.value = Math.max(1, parseInt(els.numWorkers.value) || 1);
     renderRequest();
@@ -1494,7 +1650,7 @@ For an exact quote: ${REQUEST.contactEmail}`;
      ═══════════════════════════════════════════ */
   (function init(){
     loadDetails();
-    addRoleRow();
+    addDay();
     renderRequest();
     render();
   })();
