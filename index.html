@@ -542,6 +542,7 @@
     @media (prefers-reduced-motion: reduce){ .tip{ transition:none; } }
 
     /* ── WHAT STAFF RECEIVE ── */
+    .gets[hidden]{ display:none; }
     .gets{
       grid-column:1 / -1; display:flex; align-items:baseline; flex-wrap:wrap; gap:4px 12px;
       padding:12px 16px; border-radius:var(--radius);
@@ -1164,18 +1165,18 @@
         <div class="input-wrap">
           <span class="prefix">£</span>
           <input id="pay-${i}" data-pay type="number" min="${REQUEST.minPayRate}" step="0.50" aria-describedby="tip-${i}"
-                 value="${(prefill && prefill.pay ? prefill.pay : REQUEST.minPayRate).toFixed(2)}"
-                 placeholder="${REQUEST.minPayRate.toFixed(2)}" inputmode="decimal" />
+                 value="${prefill && prefill.pay ? Number(prefill.pay).toFixed(2) : ''}"
+                 placeholder="Enter rate" inputmode="decimal" />
         </div>
       </div>
       <div class="field field-pick">
-        <label id="pick-${i}">Or choose a different rate</label>
+        <label id="pick-${i}">Or choose a rate</label>
         <div class="chips" role="group" aria-labelledby="pick-${i}">
           ${REQUEST.quickRates.map(r => `<button type="button" class="chip" data-rate="${r}">£${r}</button>`).join('')}
         </div>
       </div>
       <button type="button" class="remove-role">Remove</button>
-      <div class="gets" data-gets aria-live="polite"></div>`;
+      <div class="gets" data-gets aria-live="polite" hidden></div>`;
     day.querySelector('[data-roles]').appendChild(row);
     syncRemoveButtons(day);
     renderRequest();
@@ -1339,13 +1340,15 @@
 
   function updateRateHelp(){
     document.querySelectorAll('.role-row').forEach(row => {
-      const v = parseFloat(row.querySelector('[data-pay]').value) || 0;
+      const input = row.querySelector('[data-pay]');
+      const v = parseFloat(input.value) || 0;
       const gets = row.querySelector('[data-gets]');
       row.querySelectorAll('[data-rate]').forEach(c => c.classList.toggle('on', v > 0 && Number(c.dataset.rate) === v));
       gets.classList.remove('warn');
-      if(!v){
-        gets.textContent = `Enter a rate from £${REQUEST.minPayRate.toFixed(2)} an hour.`;
-      } else if(v < REQUEST.minPayRate){
+      // Nothing shows until there's a rate (and not while they're still typing the first digit).
+      gets.hidden = !v || (v < 10 && document.activeElement === input);
+      if(gets.hidden) return;
+      if(v < REQUEST.minPayRate){
         gets.classList.add('warn');
         gets.textContent = `Our minimum is £${REQUEST.minPayRate.toFixed(2)} an hour per person.`;
       } else if(v > 60){
@@ -1366,7 +1369,7 @@
     if(!q.ready.length){
       summaryBox.innerHTML = `
         <div class="notice">
-          Add the times and at least one role with a pay rate, and your full cost breakdown will appear here.
+          Add the times and your rate per person, and your full cost will appear here.
         </div>`;
       return;
     }
