@@ -499,6 +499,81 @@
     }
     .pay-note strong{ color:var(--text); font-weight:500; }
 
+    /* ── ROLE ROW: type · how many · rate · other rates (· remove) ── */
+    .role-row{ grid-template-columns:minmax(0,1.35fr) minmax(0,.6fr) minmax(0,1fr) auto auto; align-items:stretch; }
+    .role-row .remove-role[style*="hidden"]{ display:none; }
+    .field-pick{ min-width:0; }
+    .chips{ display:flex; gap:6px; flex-wrap:wrap; }
+    .chip{
+      background:transparent; border:1px solid rgba(255,255,255,.14); color:var(--text);
+      border-radius:10px; padding:6px 11px; min-height:34px;
+      font-size:15px; font-weight:500; font-family:'DM Mono',monospace; cursor:pointer;
+      font-variant-numeric:tabular-nums;
+    }
+    .chip:hover{ border-color:var(--accent-border); background:var(--accent-dim); }
+    .chip:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+    .chip.on{ background:var(--accent); border-color:var(--accent); color:#0b0c0f; }
+
+    /* ── EXPLANATION ON THE RATE BOX ── */
+    .field-pay label{ display:flex; align-items:center; gap:6px; }
+    .info{
+      flex:0 0 auto; width:16px; height:16px; border-radius:50%;
+      border:1px solid var(--accent-border); color:var(--accent);
+      font:600 10.5px/14px 'DM Sans',sans-serif; text-align:center;
+    }
+    .tip{
+      position:absolute; left:0; bottom:calc(100% + 10px); z-index:30;
+      width:min(320px, calc(100vw - 48px));
+      background:#1b1f2b; border:1px solid var(--accent-border); border-radius:12px;
+      padding:12px 14px; box-shadow:var(--shadow);
+      font-size:13px; line-height:1.55; color:var(--muted2);
+      opacity:0; visibility:hidden; transform:translateY(4px);
+      transition:opacity .15s, transform .15s, visibility .15s;
+      pointer-events:none;
+    }
+    .tip strong{ display:block; color:var(--text); font-weight:500; margin-bottom:4px; }
+    .tip .tip-new{ display:block; margin-top:8px; padding-top:8px; border-top:1px solid var(--line); color:var(--accent); }
+    .tip::after{
+      content:""; position:absolute; left:22px; top:100%;
+      border:7px solid transparent; border-top-color:var(--accent-border);
+    }
+    .field-pay:hover .tip, .field-pay:focus-within .tip{ opacity:1; visibility:visible; transform:none; }
+    @media (max-width:700px){ .tip{ left:auto; right:0; } .tip::after{ left:auto; right:22px; } }
+    @media (prefers-reduced-motion: reduce){ .tip{ transition:none; } }
+
+    /* ── WHAT STAFF RECEIVE ── */
+    .gets{
+      grid-column:1 / -1; display:flex; align-items:baseline; flex-wrap:wrap; gap:4px 12px;
+      padding:12px 16px; border-radius:var(--radius);
+      border:1px solid rgba(88,214,141,.28); background:rgba(88,214,141,.07);
+      font-size:14px; color:var(--muted2); line-height:1.4;
+    }
+    .gets .g-k{ color:var(--text); font-weight:500; }
+    .gets .g-v{ font-family:'DM Mono',monospace; font-size:20px; font-weight:500; color:var(--green); font-variant-numeric:tabular-nums; }
+    .gets .g-v small{ font-size:13px; color:var(--muted2); margin-left:2px; }
+    .gets.warn{ border-color:rgba(255,107,107,.35); background:rgba(255,107,107,.07); color:var(--red); }
+    .bd-line.staff{ align-items:baseline; font-size:14px; color:var(--text); padding:4px 0; }
+    .bd-line.staff span:last-child{ font-size:17px; color:var(--green); }
+
+    @media(max-width:700px){
+      .role-row{ grid-template-columns:1fr 1fr; }
+      .role-row .field-qty{ grid-column:auto; }
+      .role-row .field-pay{ grid-column:auto; }
+      .role-row .field-pick{ grid-column:1 / -1; }
+      .gets .g-v{ font-size:19px; }
+    }
+
+    /* ── NEW CLIENT ENQUIRY ── */
+    .enq-title{ font-family:'Syne',sans-serif; font-size:21px; font-weight:700; line-height:1.25; margin:0 0 8px; text-wrap:balance; }
+    textarea{
+      width:100%; min-height:120px; resize:vertical; display:block;
+      background:transparent; border:none; outline:none; color:var(--text);
+      font-family:'DM Sans',sans-serif; font-size:15px; line-height:1.55;
+    }
+    textarea::placeholder{ color:var(--muted); }
+    .new-client{ font-size:13.5px; color:var(--muted2); line-height:1.6; margin:-12px 0 20px; }
+    .new-client .linkish{ font-size:13.5px; }
+
     /* ── POINTER TO THE CALCULATOR ── */
     .jump-hint{
       display:flex; align-items:center; justify-content:center; gap:10px;
@@ -537,7 +612,7 @@
         </div>
         <div class="brand-text">
           <h1>Request Staff</h1>
-          <div class="sub">Tell us what you need and see your all-in cost before you send. Full rate breakdown below.</div>
+          <div class="sub">Tell us what you need and see your all-in cost before you send.</div>
         </div>
       </div>
       <div class="pill">GestioStaff Limited</div>
@@ -549,7 +624,11 @@
 
         <div class="section-label">1 — Request staff</div>
         <p class="card-intro">
-          Nothing is booked until we reply to confirm. You'll get a copy of this request by email.
+          Already working with us? Send your staff request here. Nothing is booked until we reply to confirm, and you'll get a copy by email.
+        </p>
+        <p class="new-client">
+          New client, or not sure about the rate?
+          <button type="button" class="linkish" id="jumpToEnquiry">Leave your details instead ↓</button>
         </p>
 
         <div class="divider"><span>Your details</span></div>
@@ -579,11 +658,10 @@
 
         <div class="divider"><span>Shifts and staff</span></div>
         <p class="pay-note">
-          <strong>Our minimum pay rate is £13.00 an hour.</strong>
-          Above that, set whatever suits your budget — but worth knowing that our staff choose
-          their own shifts, so your rate is competing with every other event on the same night.
-          Shifts paying above the going rate fill faster and tend to attract people who've
-          worked that kind of room before.
+          <strong>Rates start at £20.00 an hour per person.</strong>
+          Enter the hourly rate you're happy to pay for each person. It covers everything:
+          the staff member's pay and holiday pay, employer National Insurance and pension, and our fee.
+          Our staff choose their own shifts, so higher rates fill faster and attract more experienced people.
         </p>
         <div class="day-list" id="dayList"></div>
         <button type="button" class="add-day" id="addDay">+ Add another day</button>
@@ -636,96 +714,74 @@
       </div>
     </div>
 
-    <button type="button" class="jump-hint" id="jumpToCalc">
-      <span>Not sure what to pay? Check different rates below</span>
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path d="M12 5v14M6 13l6 6 6-6" stroke="currentColor" stroke-width="2.2"
-              stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    </button>
+    <!-- ══════════ CARD 2 — NEW CLIENTS AND QUESTIONS ══════════ -->
+    <div class="card" id="enquiryCard">
+      <form id="enquiryForm" novalidate>
+        <div class="section-label">2 — New clients and questions</div>
+        <h2 class="enq-title">Not sure about the rate, or have a question?</h2>
+        <p class="card-intro">
+          Leave your details and a few notes about the event. Someone from our team will get back to you soon.
+        </p>
 
-    <!-- ══════════ CARD 2 — CALCULATOR ══════════ -->
-    <div class="card" id="calcCard">
-      <div class="section-label">2 — Check any rate</div>
-      <p class="card-intro">
-        Try a pay rate and see exactly where every penny goes. Nothing here is sent to us.
-      </p>
-
-      <div class="inputs-grid">
-        <div class="field">
-          <label for="workerPay">Worker pay rate (£/hour)</label>
-          <div class="input-wrap">
-            <span class="prefix">£</span>
-            <input id="workerPay" type="number" min="0" step="0.01" value="13.00" inputmode="decimal" aria-describedby="nmwWarning" />
+        <div class="inputs-grid">
+          <div class="field" id="ef-name">
+            <label for="enqName">Your name</label>
+            <input id="enqName" type="text" autocomplete="name" placeholder="Jane Smith" />
           </div>
-          <div class="nmw-warning" id="nmwWarning" role="alert">
-            ⚠ Below the National Living Wage (£12.71/hr for 21+). Please verify the applicable rate for this worker's age.
+          <div class="field" id="ef-email">
+            <label for="enqEmail">Your email</label>
+            <input id="enqEmail" type="email" autocomplete="email" inputmode="email" placeholder="jane@acmeevents.co.uk" />
+          </div>
+          <div class="field span-2" id="ef-date">
+            <label id="enqDateLabel">Event date</label>
+            <button type="button" class="tp-trigger empty" id="enqDate" data-date=""
+                    aria-haspopup="dialog" aria-expanded="false" aria-labelledby="enqDateLabel"
+                    style="font-size:18px">Choose a date</button>
+          </div>
+          <div class="field" id="ef-start">
+            <label id="enqStartLabel">Start time</label>
+            <button type="button" class="tp-trigger empty" id="enqStart" data-time=""
+                    aria-haspopup="dialog" aria-expanded="false" aria-labelledby="enqStartLabel">--:--</button>
+          </div>
+          <div class="field" id="ef-finish">
+            <label id="enqFinishLabel">Finish time</label>
+            <button type="button" class="tp-trigger empty" id="enqFinish" data-time=""
+                    aria-haspopup="dialog" aria-expanded="false" aria-labelledby="enqFinishLabel">--:--</button>
+          </div>
+          <div class="field span-2" id="ef-details">
+            <label for="enqDetails">Details</label>
+            <textarea id="enqDetails" rows="5" maxlength="2000"
+                      placeholder="Where the event is, how many staff and which roles, dress code, your budget, or any questions"></textarea>
           </div>
         </div>
-        <div class="field">
-          <label for="shiftHours">Shift length (hours)</label>
-          <div class="input-wrap">
-            <input id="shiftHours" type="number" min="1" max="24" step="0.5" value="8" inputmode="decimal" />
-            <span class="suffix">hrs</span>
-          </div>
-        </div>
-        <div class="field">
-          <label for="numWorkers">Number of workers</label>
-          <div class="input-wrap">
-            <input id="numWorkers" type="number" min="1" max="500" step="1" value="1" inputmode="numeric" />
-            <span class="suffix">staff</span>
-          </div>
-        </div>
-      </div>
 
-      <div class="divider"><span>Estimated breakdown</span></div>
-
-      <div class="results" aria-live="polite" aria-atomic="true">
-        <div class="metric">
-          <div class="k">Worker pay rate</div>
-          <div class="v"><span id="displayPay">£0.00</span><span class="unit">/hr</span></div>
+        <div class="hp" aria-hidden="true">
+          <label for="enqUrl">Website</label>
+          <input id="enqUrl" type="text" tabindex="-1" autocomplete="off" />
         </div>
-        <div class="metric">
-          <div class="k">Holiday pay (12.07%)</div>
-          <div class="v"><span id="displayHoliday">£0.00</span><span class="unit">/hr</span></div>
+
+        <div class="status" id="enqStatus" role="status"></div>
+
+        <div class="actions">
+          <button class="btn-primary" id="sendEnquiry" type="submit">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Send details
+          </button>
         </div>
-        <div class="metric">
-          <div class="k">Total worker pay</div>
-          <div class="v"><span id="displayTotalWorker">£0.00</span><span class="unit">/hr</span></div>
+
+        <div class="footer-row">
+          <span>No commitment. We'll reply by email.</span>
+          <span>Prefer to talk? <a href="mailto:info@gestiostaff.com">info@gestiostaff.com</a></span>
         </div>
-        <div class="metric featured">
-          <div class="k">Estimated client cost</div>
-          <div class="v accent"><span id="displayClient">£0.00</span><span class="unit">/hr</span></div>
-        </div>
-      </div>
+      </form>
 
-      <div class="shift-banner">
-        <div class="sb-label">Total for <span id="bannerDesc">1 worker × 8hrs</span></div>
-        <div class="sb-value"><span id="displayTotal">£0.00</span><span class="unit">total ex VAT</span></div>
-      </div>
-
-      <div class="notice">
-        <strong>What's included in the client rate:</strong><br>
-        Holiday pay · Employer National Insurance · Employer pension contributions · GestioStaff agency fee.
-        <br><br>
-        <strong>Important:</strong> This is an indicative estimate only. Rates may vary for last-minute bookings, premium venues, complex shifts, or specialist roles. The NI calculation assumes a 40-hour equivalent week; actual NI may differ for single short shifts. Any variation is typically minor. For an exact quote confirmed in writing, please contact us.
-        <!-- Last verified: September 2026 | NLW £12.71 (21+), £10.85 (18-20), £8.00 (under 18/apprentice) | NI secondary threshold £96/wk, 15% | Pension lower threshold £120/wk -->
-      </div>
-
-      <div class="actions">
-        <button class="btn-primary" id="goToRequest" type="button">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M12 19V5M6 11l6-6 6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          Use this rate in a request
-        </button>
-        <button class="btn-secondary" id="copyQuote" type="button">Copy estimate</button>
-        <button class="btn-ghost" id="reset" type="button">Reset</button>
-      </div>
-
-      <div class="footer-row">
-        <span>All figures exclude VAT. For guidance only.</span>
-        <span>Questions? <a href="mailto:info@gestiostaff.com">info@gestiostaff.com</a></span>
+      <div class="success" id="enqSuccess" hidden>
+        <div class="tick" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2.5" stroke="#58d68d" stroke-width="1.8"/><path d="M4 7l8 6 8-6" stroke="#58d68d" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <h2>Thanks, we've got your details</h2>
+        <p id="enqThanks"></p>
+        <button class="btn-secondary" id="enqAgain" type="button">Send another</button>
       </div>
     </div>
 
@@ -752,12 +808,14 @@
   // ─────────────────────────────────────────
   const REQUEST = {
     endpoint: 'https://gestiostaff-shift-request.vercel.app/api/shift-request',
+    enquiryEndpoint: 'https://gestiostaff-shift-request.vercel.app/api/enquiry',
     roles: ['Event assistant', 'Waiter', 'Bartender', 'Barback'],
     storageKey: 'gs_client_details_v1',
     cooldownSeconds: 60,
     leadTimeDays: 1,
     minChargeableHours: 0,
-    minPayRate: 13,          // lowest hourly rate we'll take a request at
+    minPayRate: 20,          // lowest all-in hourly rate a client can enter
+    quickRates: [22, 24, 26],
     vatPct: 20,
     minuteStep: 15,
     contactEmail: 'info@gestiostaff.com'
@@ -790,6 +848,21 @@
     return { pay, holiday, pension, ni, margin, total: pay + holiday + pension + ni + margin };
   }
   function calcClientRate(pay){ return rateParts(pay).total; }
+
+  // The client enters the all-in rate; work back to the worker's basic pay.
+  function workerPayFor(clientRate){
+    if(!(clientRate > 0)) return 0;
+    let lo = 0, hi = clientRate;
+    for(let i = 0; i < 60; i++){
+      const mid = (lo + hi) / 2;
+      if(rateParts(mid).total > clientRate) hi = mid; else lo = mid;
+    }
+    return Math.floor(lo * 100) / 100;      // round down to the penny
+  }
+  function staffGets(clientRate){
+    const pay = workerPayFor(clientRate);
+    return pay + pay * ASSUMPTIONS.holidayPct;
+  }
 
 
   /* ═══════════════════════════════════════════
@@ -1073,7 +1146,7 @@
           ${REQUEST.roles.map(r => `<option value="${esc(r)}"${prefill && prefill.role === r ? ' selected' : ''}>${esc(r)}</option>`).join('')}
         </select>
       </div>
-      <div class="field">
+      <div class="field field-qty">
         <label for="qty-${i}">How many</label>
         <div class="input-wrap">
           <input id="qty-${i}" data-qty type="number" min="1" max="200" step="1"
@@ -1081,15 +1154,28 @@
         </div>
       </div>
       <div class="field field-pay">
-        <label for="pay-${i}">Pay rate (£/hr)</label>
+        <label for="pay-${i}">Your rate per person (£/hr) <span class="info" aria-hidden="true">i</span></label>
+        <div class="tip" role="tooltip" id="tip-${i}">
+          <strong>What to enter here</strong>
+          The total you'll pay per hour for each person. It covers everything: their pay and holiday pay,
+          employer National Insurance and pension, and our fee.
+          <span class="tip-new">This box used to ask for the staff pay rate. It now asks for your total.</span>
+        </div>
         <div class="input-wrap">
           <span class="prefix">£</span>
-          <input id="pay-${i}" data-pay type="number" min="${REQUEST.minPayRate}" step="0.25"
-                 value="${prefill && prefill.pay ? prefill.pay : ''}"
+          <input id="pay-${i}" data-pay type="number" min="${REQUEST.minPayRate}" step="0.50" aria-describedby="tip-${i}"
+                 value="${(prefill && prefill.pay ? prefill.pay : REQUEST.minPayRate).toFixed(2)}"
                  placeholder="${REQUEST.minPayRate.toFixed(2)}" inputmode="decimal" />
         </div>
       </div>
-      <button type="button" class="remove-role">Remove</button>`;
+      <div class="field field-pick">
+        <label id="pick-${i}">Or choose a different rate</label>
+        <div class="chips" role="group" aria-labelledby="pick-${i}">
+          ${REQUEST.quickRates.map(r => `<button type="button" class="chip" data-rate="${r}">£${r}</button>`).join('')}
+        </div>
+      </div>
+      <button type="button" class="remove-role">Remove</button>
+      <div class="gets" data-gets aria-live="polite"></div>`;
     day.querySelector('[data-roles]').appendChild(row);
     syncRemoveButtons(day);
     renderRequest();
@@ -1186,6 +1272,12 @@
       renderRequest();
     } else if(e.target.closest('[data-add-role]')){
       addRoleRow(day);
+    } else if(e.target.closest('[data-rate]')){
+      const chip = e.target.closest('[data-rate]');
+      const input = chip.closest('.role-row').querySelector('[data-pay]');
+      input.value = Number(chip.dataset.rate).toFixed(2);
+      clearInvalid();
+      renderRequest();
     }
   });
 
@@ -1205,8 +1297,9 @@
       const worked = hoursFor(d.start, d.finish, d.breakMinutes);
       const billable = worked > 0 ? Math.max(worked, REQUEST.minChargeableHours) : 0;
       const lines = linesOf(el).map(l => {
-        const parts = rateParts(l.pay);
-        return { ...l, parts, rate: parts.total, hours: billable, total: parts.total * billable * l.qty };
+        const workerPay = workerPayFor(l.pay);
+        const staff = workerPay + workerPay * ASSUMPTIONS.holidayPct;
+        return { ...l, workerPay, staff, rate: l.pay, hours: billable, total: l.pay * billable * l.qty };
       });
       return {
         el, index, ...d, workedHours: worked, billableHours: billable, lines,
@@ -1225,29 +1318,48 @@
       vatApplied: vatOn,
       staffShifts: ready.reduce((a,q) => a + q.staffCount, 0),
       belowMin: allLines.some(l => l.pay < REQUEST.minPayRate),
-      belowNMW: allLines.some(l => l.pay < ASSUMPTIONS.nmwRate)
+      belowNMW: allLines.some(l => l.workerPay < ASSUMPTIONS.nmwRate)
     };
   }
 
   function lineBlock(l, hours){
-    const p = l.parts;
     return `
       <div class="breakdown">
         <div class="bd-head">
           <div class="bd-title">${esc(l.role)} <span>× ${l.qty}</span></div>
-          <div class="bd-rate">${money(p.total)}<span class="unit">/hr</span></div>
+          <div class="bd-rate">${money(l.rate)}<span class="unit">/hr</span></div>
         </div>
-        <div class="bd-line"><span>Worker pay rate</span><span>${money(p.pay)}</span></div>
-        <div class="bd-line"><span>Holiday pay (12.07%)</span><span>${money(p.holiday)}</span></div>
+        <div class="bd-line staff"><span>Staff receive (incl. holiday pay)</span><span>${money(l.staff)}/hr</span></div>
         <div class="bd-line sum">
-          <span>${money(p.total)}/hr × ${tidyHours(hours)}hrs × ${l.qty}</span>
+          <span>${money(l.rate)}/hr × ${tidyHours(hours)}hrs × ${l.qty}</span>
           <span>${money(l.total)}</span>
         </div>
       </div>`;
   }
 
+  function updateRateHelp(){
+    document.querySelectorAll('.role-row').forEach(row => {
+      const v = parseFloat(row.querySelector('[data-pay]').value) || 0;
+      const gets = row.querySelector('[data-gets]');
+      row.querySelectorAll('[data-rate]').forEach(c => c.classList.toggle('on', v > 0 && Number(c.dataset.rate) === v));
+      gets.classList.remove('warn');
+      if(!v){
+        gets.textContent = `Enter a rate from £${REQUEST.minPayRate.toFixed(2)} an hour.`;
+      } else if(v < REQUEST.minPayRate){
+        gets.classList.add('warn');
+        gets.textContent = `Our minimum is £${REQUEST.minPayRate.toFixed(2)} an hour per person.`;
+      } else if(v > 60){
+        gets.classList.add('warn');
+        gets.textContent = 'That looks like a total. Please enter the rate per person, per hour.';
+      } else {
+        gets.innerHTML = `<span class="g-k">Staff receive</span><span class="g-v">${money(staffGets(v))}<small>/hr</small></span><span>including holiday pay</span>`;
+      }
+    });
+  }
+
   function renderRequest(){
     syncDays();
+    updateRateHelp();
     const q = buildQuote();
     const multi = q.days.length > 1;
 
@@ -1279,7 +1391,7 @@
 
     const rateNote = q.belowMin
       ? `<div class="nmw-warning visible" style="margin-top:12px">
-           ⚠ Our minimum pay rate is £${REQUEST.minPayRate.toFixed(2)}/hr. Please raise any rate
+           ⚠ Our minimum rate is £${REQUEST.minPayRate.toFixed(2)}/hr per person. Please raise any rate
            below that before sending your request.
          </div>` : '';
 
@@ -1318,11 +1430,7 @@
           <span>${money(q.total)}</span>
         </div>
       </div>
-      <div class="notice">
-        ${hoursNote}
-        This is an estimate based on the rates you've entered, not an invoice.
-        ${rateNote}
-      </div>`;
+      ${rateNote}`;
 
     $('vatSwitch').addEventListener('click', () => {
       vatOn = !vatOn;
@@ -1422,13 +1530,13 @@
       if(lowRow){
         const input = lowRow.querySelector('[data-pay]');
         return markInvalidEl(input.closest('.field'), input,
-          pre + `${multi ? 'our' : 'Our'} minimum pay rate is £${REQUEST.minPayRate.toFixed(2)} an hour. Please raise that rate to continue.`);
+          pre + `${multi ? 'our' : 'Our'} minimum rate is £${REQUEST.minPayRate.toFixed(2)} an hour per person. Please raise that rate to continue.`);
       }
 
       if(!d.lines.length){
         const firstPay = day.querySelector('[data-pay]');
         return markInvalidEl(firstPay && firstPay.closest('.field'), firstPay,
-          pre + (multi ? 'add' : 'Add') + ' how many staff you need and the hourly rate you want to pay them.');
+          pre + (multi ? 'add' : 'Add') + ' how many staff you need and the hourly rate you\'ll pay per person.');
       }
     }
 
@@ -1470,7 +1578,7 @@
                         chargeableHours: d.billableHours,
                         staffCount:      d.staffCount,
                         lines:           d.lines.map(l => ({
-                                           role: l.role, qty: l.qty, pay: l.pay,
+                                           role: l.role, qty: l.qty, pay: l.workerPay, staff: Math.round(l.staff * 100) / 100,
                                            rate: l.rate, hours: l.hours, total: l.total
                                          })),
                         subtotal:        d.subtotal
@@ -1535,6 +1643,92 @@
 
   $('clearShift').addEventListener('click', clearShiftDetails);
 
+  /* ── NEW CLIENT ENQUIRY ── */
+  (function(){
+    const f  = $('enquiryForm');
+    const st = $('enqStatus');
+    buildDatePicker($('enqDate'));
+    buildPicker($('enqStart'), 6);
+    buildPicker($('enqFinish'), 12);
+
+    function clearEnq(){
+      f.querySelectorAll('.invalid').forEach(el => el.classList.remove('invalid'));
+      st.textContent = '';
+      st.classList.remove('error');
+    }
+    function bad(fieldId, focusEl, msg){
+      $(fieldId).classList.add('invalid');
+      if(focusEl) focusEl.focus();
+      st.textContent = msg;
+      st.classList.add('error');
+      return false;
+    }
+    f.addEventListener('input', clearEnq);
+    document.addEventListener('gs:recalc', () => { if(f.querySelector('.invalid')) clearEnq(); });
+
+    f.addEventListener('submit', async e => {
+      e.preventDefault();
+      if($('enqUrl').value) return;                      // honeypot
+      clearEnq();
+      const name  = $('enqName').value.trim();
+      const email = $('enqEmail').value.trim();
+      if(!name) return bad('ef-name', $('enqName'), 'Please add your name.');
+      if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+        return bad('ef-email', $('enqEmail'), 'Check the email address, so we can reply to you.');
+      if(!$('enqDate').dataset.date) return bad('ef-date', $('enqDate'), 'Choose the event date.');
+
+      const btn = $('sendEnquiry');
+      const original = btn.innerHTML;
+      btn.disabled = true;
+      btn.textContent = 'Sending…';
+      try{
+        const res = await fetch(REQUEST.enquiryEndpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name, email,
+            date:    $('enqDate').dataset.date || '',
+            start:   $('enqStart').dataset.time || '',
+            finish:  $('enqFinish').dataset.time || '',
+            details: $('enqDetails').value.trim()
+          })
+        });
+        if(!res.ok) throw new Error('HTTP ' + res.status);
+      }catch(err){
+        st.textContent = `Sorry, that didn't send. Please try again, or email us at ${REQUEST.contactEmail}.`;
+        st.classList.add('error');
+        return;
+      }finally{
+        btn.disabled = false;
+        btn.innerHTML = original;
+      }
+
+      const first = name.split(/\s+/)[0];
+      $('enqThanks').textContent = `Thanks, ${first.charAt(0).toUpperCase() + first.slice(1)}. We've emailed you a copy, and someone from our team will get back to you soon.`;
+      f.hidden = true;
+      $('enqSuccess').hidden = false;
+      $('enquiryCard').scrollIntoView({ behavior:'smooth', block:'start' });
+    });
+
+    $('enqAgain').addEventListener('click', () => {
+      f.reset();
+      const d = $('enqDate');
+      d.dataset.date = ''; d.textContent = 'Choose a date'; d.classList.add('empty');
+      ['enqStart','enqFinish'].forEach(id => {
+        const t = $(id);
+        t.dataset.time = ''; t.textContent = '--:--'; t.classList.add('empty');
+      });
+      $('enqSuccess').hidden = true;
+      f.hidden = false;
+      $('enqName').focus();
+    });
+
+    $('jumpToEnquiry').addEventListener('click', () => {
+      $('enquiryCard').scrollIntoView({ behavior:'smooth', block:'start' });
+      setTimeout(() => $('enqName').focus({ preventScroll:true }), 450);
+    });
+  })();
+
   $('newRequest').addEventListener('click', () => {
     clearShiftDetails();
     $('successPanel').hidden = true;
@@ -1546,113 +1740,12 @@
 
 
   /* ═══════════════════════════════════════════
-     CALCULATOR
-     ═══════════════════════════════════════════ */
-  const els = {
-    workerPay: $('workerPay'), shiftHours: $('shiftHours'), numWorkers: $('numWorkers'),
-    displayPay: $('displayPay'), displayHoliday: $('displayHoliday'),
-    displayTotalWorker: $('displayTotalWorker'), displayClient: $('displayClient'),
-    displayTotal: $('displayTotal'), bannerDesc: $('bannerDesc'),
-    nmwWarning: $('nmwWarning'), copyQuote: $('copyQuote'), reset: $('reset'),
-  };
-
-  function render(){
-    const pay     = Math.max(0, parseFloat(els.workerPay.value) || 0);
-    const hours   = Math.max(0, parseFloat(els.shiftHours.value) || 0);
-    const workers = Math.max(1, parseInt(els.numWorkers.value) || 1);
-
-    const holiday     = pay * ASSUMPTIONS.holidayPct;
-    const clientRate  = calcClientRate(pay);
-
-    els.displayPay.textContent         = money(pay);
-    els.displayHoliday.textContent     = money(holiday);
-    els.displayTotalWorker.textContent = money(pay + holiday);
-    els.displayClient.textContent      = money(clientRate);
-    els.displayTotal.textContent       = money(clientRate * hours * workers);
-
-    els.bannerDesc.textContent =
-      `${workers === 1 ? '1 worker' : workers + ' workers'} × ${hours === 1 ? '1hr' : hours + 'hrs'}`;
-
-    els.nmwWarning.classList.toggle('visible', pay > 0 && pay < ASSUMPTIONS.nmwRate);
-  }
-
-  els.workerPay.addEventListener('input', render);
-  els.shiftHours.addEventListener('input', render);
-  els.numWorkers.addEventListener('input', render);
-
-  function buildQuoteText(){
-    const pay     = Math.max(0, parseFloat(els.workerPay.value) || 0);
-    const hours   = Math.max(0, parseFloat(els.shiftHours.value) || 0);
-    const workers = Math.max(1, parseInt(els.numWorkers.value) || 1);
-    const p = rateParts(pay);
-
-    return `GestioStaff – Rate Estimate (ex VAT)
-Worker pay rate:    ${money(p.pay)}/hr
-Holiday pay:        ${money(p.holiday)}/hr
-Employer NI:        ${money(p.ni)}/hr
-Employer pension:   ${money(p.pension)}/hr
-Agency fee:         ${money(p.margin)}/hr
-Client cost:        ${money(p.total)}/hr
-
-Shift total: ${money(p.total * hours * workers)} (${workers === 1 ? '1 worker' : workers + ' workers'} × ${hours}hrs)
-
-For an exact quote: ${REQUEST.contactEmail}`;
-  }
-
-  async function copyText(text){
-    try{
-      await navigator.clipboard.writeText(text);
-      return true;
-    }catch{
-      try{
-        const ta = document.createElement('textarea');
-        ta.value = text;
-        ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0;';
-        document.body.appendChild(ta);
-        ta.select();
-        document.execCommand('copy');
-        document.body.removeChild(ta);
-        return true;
-      }catch{ return false; }
-    }
-  }
-
-  els.copyQuote.addEventListener('click', async () => {
-    const ok = await copyText(buildQuoteText());
-    els.copyQuote.textContent = ok ? 'Copied ✓' : 'Copy failed';
-    setTimeout(() => els.copyQuote.textContent = 'Copy estimate', 1200);
-  });
-
-  els.reset.addEventListener('click', () => {
-    els.workerPay.value  = '13.00';
-    els.shiftHours.value = '8';
-    els.numWorkers.value = '1';
-    render();
-  });
-
-  $('jumpToCalc').addEventListener('click', () => {
-    $('calcCard').scrollIntoView({ behavior:'smooth', block:'start' });
-  });
-
-  // Carry the calculator's rate up into the request form.
-  $('goToRequest').addEventListener('click', () => {
-    const firstPay = dayList.querySelector('[data-pay]');
-    const firstQty = dayList.querySelector('[data-qty]');
-    if(firstPay) firstPay.value = (parseFloat(els.workerPay.value) || 0).toFixed(2);
-    if(firstQty) firstQty.value = Math.max(1, parseInt(els.numWorkers.value) || 1);
-    renderRequest();
-    $('requestCard').scrollIntoView({ behavior:'smooth', block:'start' });
-  });
-
-
-  /* ═══════════════════════════════════════════
      START UP
      ═══════════════════════════════════════════ */
   (function init(){
     loadDetails();
     addDay();
     renderRequest();
-    render();
   })();
 
   // Tell the Squarespace page how tall this needs to be, so the iframe
