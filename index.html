@@ -836,6 +836,21 @@
   function tidyHours(h){ return (Math.round(h * 100) / 100).toString(); }
   const $ = id => document.getElementById(id);
 
+  // On gestiostaff.com this page sits inside an iframe. The iframe must never
+  // scroll itself: Safari then leaves part of the page blank. So scrolling is
+  // asked of the website around it, and focus never scrolls.
+  const EMBEDDED = window.parent !== window;
+  function reveal(el, gap){
+    if(!el) return;
+    if(!EMBEDDED){ el.scrollIntoView({ behavior:'smooth', block:'start' }); return; }
+    const y = Math.max(0, Math.round(el.getBoundingClientRect().top + window.scrollY - (gap || 16)));
+    window.parent.postMessage({ gsScrollTo: y }, '*');
+  }
+  function focusQuietly(el){
+    if(!el) return;
+    try{ el.focus({ preventScroll: EMBEDDED }); }catch(e){ el.focus(); }
+  }
+
   // Every cost that sits on top of the pay rate, itemised.
   function rateParts(pay){
     const holiday = pay * ASSUMPTIONS.holidayPct;
@@ -1287,9 +1302,8 @@
     const day = addDay(list[list.length - 1]);
     if(!day) return;
     clearInvalid();
-    const trigger = day.querySelector('[data-date-trigger]');
-    trigger.focus();
-    day.scrollIntoView({ behavior:'smooth', block:'start' });
+    focusQuietly(day.querySelector('[data-date-trigger]'));
+    reveal(day);
   });
 
   function buildQuote(){
@@ -1474,14 +1488,14 @@
     ['company','contact','email'].forEach(id => $(id).value = '');
     $('remember').checked = false;
     $('savedNote').hidden = true;
-    $('company').focus();
+    focusQuietly($('company'));
   });
 
   // ── Validation ──
   function markInvalid(fieldId, focusId, message){
     $(fieldId).classList.add('invalid');
-    const el = $(focusId);
-    if(el) el.focus();
+    focusQuietly($(focusId));
+    if(EMBEDDED) reveal($(fieldId), 90);
     statusBox.textContent = message;
     statusBox.classList.add('error');
     return false;
@@ -1494,7 +1508,8 @@
 
   function markInvalidEl(fieldEl, focusEl, message){
     if(fieldEl) fieldEl.classList.add('invalid');
-    if(focusEl) focusEl.focus();
+    focusQuietly(focusEl);
+    if(EMBEDDED) reveal(fieldEl || focusEl, 90);
     statusBox.textContent = message;
     statusBox.classList.add('error');
     return false;
@@ -1621,10 +1636,8 @@
 
       // Inside an iframe the page itself doesn't scroll, so ask the parent
       // to bring the top of the embed back into view.
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      if(window.parent !== window){
-        window.parent.postMessage({ gsScrollTop: true }, '*');
-      }
+      if(EMBEDDED) window.parent.postMessage({ gsScrollTop: true }, '*');
+      else window.scrollTo({ top: 0, behavior: 'smooth' });
 
     }catch(err){
       statusBox.innerHTML = `That didn't send. Try again, or email us directly at <a href="mailto:${REQUEST.contactEmail}">${REQUEST.contactEmail}</a>.`;
@@ -1661,7 +1674,8 @@
     }
     function bad(fieldId, focusEl, msg){
       $(fieldId).classList.add('invalid');
-      if(focusEl) focusEl.focus();
+      focusQuietly(focusEl);
+      if(EMBEDDED) reveal($(fieldId), 90);
       st.textContent = msg;
       st.classList.add('error');
       return false;
@@ -1710,7 +1724,7 @@
       $('enqThanks').textContent = `Thanks, ${first.charAt(0).toUpperCase() + first.slice(1)}. We've emailed you a copy, and someone from our team will get back to you soon.`;
       f.hidden = true;
       $('enqSuccess').hidden = false;
-      $('enquiryCard').scrollIntoView({ behavior:'smooth', block:'start' });
+      reveal($('enquiryCard'));
     });
 
     $('enqAgain').addEventListener('click', () => {
@@ -1723,12 +1737,12 @@
       });
       $('enqSuccess').hidden = true;
       f.hidden = false;
-      $('enqName').focus();
+      focusQuietly($('enqName'));
     });
 
     $('jumpToEnquiry').addEventListener('click', () => {
-      $('enquiryCard').scrollIntoView({ behavior:'smooth', block:'start' });
-      setTimeout(() => $('enqName').focus({ preventScroll:true }), 450);
+      reveal($('enquiryCard'));
+      setTimeout(() => focusQuietly($('enqName')), 450);
     });
   })();
 
@@ -1738,7 +1752,7 @@
     form.hidden = false;
     loadedAt = Date.now();
     const firstDate = dayList.querySelector('[data-date-trigger]');
-    if(firstDate) firstDate.focus();
+    focusQuietly(firstDate);
   });
 
 
@@ -1755,6 +1769,19 @@
   // never gets its own scrollbar.
   (function reportHeight(){
     if(window.parent === window) return;
+
+    // If anything ever scrolls the inside of the iframe, put it straight back.
+    window.addEventListener('scroll', () => {
+      if(window.scrollY || window.scrollX) window.scrollTo(0, 0);
+    }, { passive:true });
+
+    // When the website makes the iframe taller, Safari can leave the newly
+    // shown part blank until something repaints. Nudge a repaint.
+    window.addEventListener('resize', () => {
+      if(window.scrollY) window.scrollTo(0, 0);
+      document.body.style.transform = 'translateZ(0)';
+      requestAnimationFrame(() => requestAnimationFrame(() => { document.body.style.transform = ''; }));
+    });
     const wrap = document.querySelector('.wrap');
     let last = 0;
     const send = () => {
