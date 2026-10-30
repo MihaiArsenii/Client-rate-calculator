@@ -810,6 +810,7 @@
   const REQUEST = {
     endpoint: 'https://gestiostaff-shift-request.vercel.app/api/shift-request',
     enquiryEndpoint: 'https://gestiostaff-shift-request.vercel.app/api/enquiry',
+    intakeEndpoint: 'https://crew.gestiostaff.com/api/request-intake',  // saves the request for the New booking page
     roles: ['Event assistant', 'Waiter', 'Bartender', 'Barback'],
     storageKey: 'gs_client_details_v1',
     cooldownSeconds: 60,
@@ -1580,6 +1581,7 @@
   }
 
   // ── Submit ──
+  let savedRequest = null;     // the last request saved for the New booking page
   form.addEventListener('submit', async e => {
     e.preventDefault();
 
@@ -1637,6 +1639,30 @@
     statusBox.classList.remove('error');
 
     try{
+      // 1. Save the request so it can be opened on the New booking page. If this
+      //    fails, the emails still go; the links in Mihai's copy are just left out.
+      //    If the emails fail and the client tries again, the saved request is reused.
+      const saveKey = JSON.stringify(payload);
+      if(savedRequest && savedRequest.key === saveKey){
+        payload.requestIds = savedRequest.ids;
+      } else {
+        try{
+          const saved = await fetch(REQUEST.intakeEndpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: saveKey
+          });
+          if(saved.ok){
+            const out = await saved.json();
+            if(out && Array.isArray(out.ids) && out.ids.length === payload.shifts.length){
+              payload.requestIds = out.ids;
+              savedRequest = { key: saveKey, ids: out.ids };
+            }
+          }
+        }catch(eSave){ /* carry on and send the emails */ }
+      }
+
+      // 2. Email the client their copy and Mihai his
       const res = await fetch(REQUEST.endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
