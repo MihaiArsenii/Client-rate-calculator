@@ -985,10 +985,23 @@
     paint();
   }
 
+  // Close an open picker when someone clicks elsewhere. The calendar redraws itself when the
+  // month changes, which detaches the clicked arrow, so check the click's original path
+  // rather than where the clicked element is now.
   document.addEventListener('click', e => {
-    if(openPicker && !e.target.closest('.tp-pop, .dp-pop')) closePicker();
+    if(!openPicker) return;
+    const path = e.composedPath ? e.composedPath() : [];
+    const inside = path.includes(openPicker.pop) || path.includes(openPicker.trigger) ||
+                   (e.target.isConnected && openPicker.pop.contains(e.target));
+    if(!inside) closePicker();
   });
-  document.addEventListener('keydown', e => { if(e.key === 'Escape') closePicker(); });
+  document.addEventListener('keydown', e => {
+    if(e.key !== 'Escape' || !openPicker) return;
+    const { pop, trigger } = openPicker;
+    const hadFocus = pop.contains(document.activeElement);
+    closePicker();
+    if(hadFocus) focusQuietly(trigger);
+  });
 
   // Pickers are built for each day as it's added (see addDay below).
 
@@ -1181,7 +1194,7 @@
           <span class="prefix">£</span>
           <input id="pay-${i}" data-pay type="number" min="${REQUEST.minPayRate}" step="0.50" aria-describedby="tip-${i}"
                  value="${prefill && prefill.pay ? Number(prefill.pay).toFixed(2) : ''}"
-                 placeholder="Enter rate" inputmode="decimal" />
+                 placeholder="Rate" inputmode="decimal" />
         </div>
       </div>
       <div class="field field-pick">
@@ -1538,6 +1551,8 @@
         return markInvalidEl(f('start'), day.querySelector('[data-start]'), pre + (multi ? 'choose when the shift starts.' : 'Choose when the shift starts.'));
       if(!d.finish)
         return markInvalidEl(f('finish'), day.querySelector('[data-finish]'), pre + (multi ? 'choose when the shift finishes.' : 'Choose when the shift finishes.'));
+      if(d.start === d.finish)
+        return markInvalidEl(f('finish'), day.querySelector('[data-finish]'), pre + (multi ? 'the start' : 'The start') + ' and finish times are the same. Check the times.');
       if(d.workedHours <= 0)
         return markInvalidEl(f('break'), day.querySelector('[data-break]'), pre + (multi ? 'the break' : 'The break') + ' is longer than the shift. Check the times.');
 
@@ -1569,7 +1584,11 @@
     e.preventDefault();
 
     if($('companyUrl').value) return;                  // honeypot
-    if(Date.now() - loadedAt < 3000) return;           // too fast to be human
+    if(Date.now() - loadedAt < 3000){                  // too fast to be human
+      statusBox.textContent = 'Please check your details, then press Send request again.';
+      statusBox.classList.remove('error');
+      return;
+    }
 
     try{
       const last = parseInt(localStorage.getItem('gs_last_request') || '0', 10);
@@ -1690,7 +1709,7 @@
       const name  = $('enqName').value.trim();
       const email = $('enqEmail').value.trim();
       if(!name) return bad('ef-name', $('enqName'), 'Please add your name.');
-      if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+      if(!/^[^\s@<>"]+@[^\s@<>"]+\.[^\s@<>"]{2,}$/.test(email))
         return bad('ef-email', $('enqEmail'), 'Check the email address, so we can reply to you.');
       if(!$('enqDate').dataset.date) return bad('ef-date', $('enqDate'), 'Choose the event date.');
 
