@@ -599,6 +599,10 @@
       font-family:'DM Sans',sans-serif; font-size:15px; line-height:1.55;
     }
     textarea::placeholder{ color:var(--muted); }
+    .notes-field{ margin-bottom:20px; }
+    .notes-field textarea{ min-height:96px; }
+    .field label .opt{ color:var(--muted); }
+    .notes-count{ display:block; text-align:right; font-size:11.5px; color:var(--muted); margin-top:6px; }
     .new-client{ font-size:13.5px; color:var(--muted2); line-height:1.6; margin:-12px 0 20px; }
     .new-client .linkish{ font-size:13.5px; }
 
@@ -726,6 +730,14 @@
 
         <div class="divider"><span>What you'll pay</span></div>
         <div id="requestSummary" aria-live="polite"></div>
+
+        <div class="divider"><span>Notes</span></div>
+        <div class="field notes-field" id="f-notes">
+          <label for="notes">Anything else we should know? <span class="opt">(optional)</span></label>
+          <textarea id="notes" rows="3" maxlength="1000"
+                    placeholder="e.g. who staff should report to, parking or access, or any special requests"></textarea>
+          <span class="notes-count" id="notesCount" aria-live="polite" hidden></span>
+        </div>
 
         <div class="divider"><span>Confirm and send</span></div>
         <div class="check" id="f-confirm">
@@ -1587,6 +1599,14 @@
     }));
   ['venue','address'].forEach(id => $(id).addEventListener('input', () => $('f-' + id).classList.remove('invalid')));
 
+  // ── Notes: show how many characters are left near the limit ──
+  function syncNotesCount(){
+    const left = 1000 - $('notes').value.length;
+    $('notesCount').hidden = left > 150;
+    $('notesCount').textContent = left + ' characters left';
+  }
+  $('notes').addEventListener('input', syncNotesCount);
+
   // ── Remembering the client's details (this browser only) ──
   function saveDetails(){
     try{
@@ -1735,6 +1755,7 @@
       location:       locType() === 'new'
                         ? { type: 'new', venue: $('venue').value.trim(), address: $('address').value.trim() }
                         : { type: 'usual' },
+      notes:          $('notes').value.trim(),
       shifts:         q.days.map(d => ({
                         date:            d.date,
                         start:           d.start,
@@ -1825,6 +1846,7 @@
     dayList.innerHTML = '';
     $('confirmDetails').checked = false;
     $('venue').value = ''; $('address').value = '';
+    $('notes').value = ''; syncNotesCount();
     addDay();
     clearInvalid();
     renderRequest();
