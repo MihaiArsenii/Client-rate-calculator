@@ -525,6 +525,7 @@
       font-size:12.5px; line-height:1.6; color:var(--muted2);
     }
     .pay-note strong{ color:var(--text); font-weight:500; }
+    .pay-note a{ color:var(--accent); }
 
     /* ── ROLE ROW: type · how many · rate · other rates (· remove) ── */
     .role-row{ grid-template-columns:minmax(0,1.35fr) minmax(0,.6fr) minmax(0,1fr) auto auto; align-items:stretch; }
@@ -716,10 +717,10 @@
 
         <div class="divider"><span>Shifts and staff</span></div>
         <p class="pay-note">
-          <strong>Rates start at £20.00 an hour per person.</strong>
-          Enter the hourly rate you're happy to pay for each person. It covers everything:
-          the staff member's pay and holiday pay, employer National Insurance and pension, and our fee.
-          Our staff choose their own shifts, so higher rates fill faster and attract more experienced people.
+          <strong>Enter the hourly rate we've agreed with you.</strong>
+          It's the total per person and covers everything: the staff member's pay and holiday pay,
+          employer National Insurance and pension, and our fee.
+          Not sure what your rate is? Just ask us at <a href="mailto:info@gestiostaff.com">info@gestiostaff.com</a>.
         </p>
         <div class="day-list" id="dayList"></div>
         <button type="button" class="add-day" id="addDay">+ Add another day</button>
@@ -1282,10 +1283,10 @@
         </div>
       </div>
       <div class="field field-pay">
-        <label for="pay-${i}">Your rate per person (£/hr) <span class="info" aria-hidden="true">i</span></label>
+        <label for="pay-${i}">Agreed rate per person (£/hr) <span class="info" aria-hidden="true">i</span></label>
         <div class="tip" role="tooltip" id="tip-${i}">
           <strong>What to enter here</strong>
-          The total you'll pay per hour for each person. It covers everything: their pay and holiday pay,
+          The hourly rate we've agreed with you, per person. It covers everything: their pay and holiday pay,
           employer National Insurance and pension, and our fee.
           <span class="tip-new">This box used to ask for the staff pay rate. It now asks for your total.</span>
         </div>
@@ -1714,7 +1715,7 @@
       if(!d.lines.length){
         const firstPay = day.querySelector('[data-pay]');
         return markInvalidEl(firstPay && firstPay.closest('.field'), firstPay,
-          pre + (multi ? 'add' : 'Add') + ' how many staff you need and the hourly rate you\'ll pay per person.');
+          pre + (multi ? 'add' : 'Add') + ' how many staff you need and your agreed hourly rate per person.');
       }
     }
 
