@@ -117,6 +117,14 @@
       box-shadow: 0 0 0 3px rgba(255,213,74,.10);
     }
     .field.invalid{ border-color: rgba(255,107,107,.5); }
+    /* The whole box is clickable: text boxes start typing, pickers and lists open */
+    .field{ cursor:text; }
+    .field:has(select), .field:has(.tp-trigger){ cursor:pointer; }
+    .field.field-pick{ cursor:default; }
+    .field label{ cursor:inherit; }
+    .field:hover:not(:focus-within):not(.invalid){ border-color:rgba(255,255,255,.13); }
+    .check{ cursor:pointer; }
+    .check:hover:not(.invalid){ border-color:rgba(255,255,255,.13); }
     .field label{
       display:block;
       font-size:12px; color:var(--muted2); margin-bottom:8px; line-height:1.3;
@@ -1049,6 +1057,39 @@
     if(hadFocus) focusQuietly(trigger);
   });
 
+  // Click anywhere on a box (not just on the small text line) to use it:
+  // text boxes start typing, date and time boxes open their picker, lists open, tick boxes tick.
+  document.addEventListener('click', e => {
+    const t = e.target;
+    if(!(t instanceof Element)) return;
+    if(t.closest('input, select, textarea, button, a, label, .tp-pop, .dp-pop')) return;
+    const box = t.closest('.field, .check');
+    if(!box) return;
+    if(box.classList.contains('check')){
+      const cb = box.querySelector('input[type="checkbox"]');
+      if(cb && !cb.disabled) cb.click();
+      return;
+    }
+    const trigger = box.querySelector('.tp-trigger');
+    if(trigger){
+      // Already open? Let the click close it, as clicking outside does.
+      if(openPicker && openPicker.trigger === trigger) return;
+      setTimeout(() => trigger.click(), 0);
+      return;
+    }
+    const sel = box.querySelector('select');
+    if(sel){
+      try{ sel.focus({ preventScroll:true }); }catch(err){ sel.focus(); }
+      try{ if(sel.showPicker) sel.showPicker(); }catch(err){ /* not supported: focus is enough */ }
+      return;
+    }
+    const inp = box.querySelector('input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]), textarea');
+    if(inp){
+      try{ inp.focus({ preventScroll:true }); }catch(err){ inp.focus(); }
+      try{ const n = inp.value.length; inp.setSelectionRange(n, n); }catch(err){ /* number and email boxes */ }
+    }
+  }, true);
+
   // Pickers are built for each day as it's added (see addDay below).
 
 
@@ -1534,8 +1575,16 @@
     if(r) r.checked = true;
     syncLocation(false);
   }
+  // Jump to the venue box only when the choice was clicked or tapped. Keyboard users
+  // moving through the options with the arrow keys stay where they are.
+  let locByPointer = false;
+  form.querySelectorAll('.loc-opt').forEach(o => o.addEventListener('pointerdown', () => { locByPointer = true; }));
   form.querySelectorAll('input[name="locType"]').forEach(r =>
-    r.addEventListener('change', () => { $('f-loctype').classList.remove('invalid'); syncLocation(true); }));
+    r.addEventListener('change', () => {
+      $('f-loctype').classList.remove('invalid');
+      syncLocation(locByPointer);
+      locByPointer = false;
+    }));
   ['venue','address'].forEach(id => $(id).addEventListener('input', () => $('f-' + id).classList.remove('invalid')));
 
   // ── Remembering the client's details (this browser only) ──
