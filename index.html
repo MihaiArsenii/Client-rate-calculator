@@ -489,6 +489,25 @@
 
     .hp{ position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden; }
 
+    /* ── EVENT LOCATION ── */
+    .loc-q{ font-size:14px; color:var(--text); font-weight:500; margin:0 0 10px; }
+    .loc-choice{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:22px; border-radius:var(--radius); }
+    @media(max-width:580px){ .loc-choice{ grid-template-columns:1fr; } }
+    .loc-choice.invalid{ box-shadow:0 0 0 1px rgba(255,107,107,.5); }
+    .loc-opt{
+      display:flex; gap:11px; align-items:flex-start;
+      padding:14px 16px; border:1px solid var(--line); border-radius:var(--radius);
+      background:var(--card2); cursor:pointer; transition:border-color .2s, background .2s;
+    }
+    .loc-opt:hover{ border-color:rgba(255,213,74,.22); }
+    .loc-opt input{ width:17px; height:17px; margin-top:2px; flex:0 0 auto; accent-color:var(--accent); cursor:pointer; }
+    .loc-opt strong{ display:block; color:var(--text); font-weight:500; font-size:14px; margin-bottom:3px; }
+    .loc-opt span{ display:block; font-size:12.5px; color:var(--muted2); line-height:1.5; }
+    .loc-opt.is-on{ border-color:var(--accent-border); background:rgba(255,213,74,.06); }
+    .loc-fields{ margin-top:-8px; }
+    .loc-fields .inputs-grid{ margin-bottom:8px; }
+    .loc-hint{ font-size:12.5px; color:var(--muted); line-height:1.55; margin:0 0 22px; }
+
     /* ── PAY RATE NOTE ── */
     .pay-note{
       border-left:2px solid var(--accent-border);
@@ -655,6 +674,32 @@
         <div class="saved-note" id="savedNote" hidden>
           <span>Details filled in from your last request.</span>
           <button type="button" class="linkish" id="forgetBtn">Forget them</button>
+        </div>
+
+        <div class="divider"><span>Event location</span></div>
+        <p class="loc-q" id="locQ">Where is the event?</p>
+        <div class="loc-choice" role="radiogroup" aria-labelledby="locQ" id="f-loctype">
+          <label class="loc-opt is-on">
+            <input type="radio" name="locType" value="usual" checked />
+            <div><strong>At our usual venue</strong><span>Where we normally work for you. Nothing else to add.</span></div>
+          </label>
+          <label class="loc-opt">
+            <input type="radio" name="locType" value="new" />
+            <div><strong>At a different location</strong><span>A new venue, a private home or anywhere else. You'll add the address.</span></div>
+          </label>
+        </div>
+        <div class="loc-fields" id="locFields" hidden>
+          <div class="inputs-grid">
+            <div class="field span-2" id="f-venue">
+              <label for="venue">Venue or event name</label>
+              <input id="venue" type="text" maxlength="100" autocomplete="off" placeholder="e.g. The Grand Ballroom, or Private residence" />
+            </div>
+            <div class="field span-2" id="f-address">
+              <label for="address">Full address and postcode, or a Google Maps link</label>
+              <input id="address" type="text" maxlength="300" autocomplete="street-address" placeholder="e.g. 10 High Street, London E1 6AN" />
+            </div>
+          </div>
+          <p class="loc-hint">Our staff get directions from this. Different venues on different days? Please send a separate request for each venue.</p>
         </div>
 
         <div class="divider"><span>Shifts and staff</span></div>
@@ -1473,13 +1518,34 @@
   form.addEventListener('change', renderRequest);
   document.addEventListener('gs:recalc', renderRequest);
 
+  // ── Event location: usual venue (nothing to add) or a different location ──
+  function locType(){
+    const r = form.querySelector('input[name="locType"]:checked');
+    return r && r.value === 'new' ? 'new' : 'usual';
+  }
+  function syncLocation(focus){
+    const isNew = locType() === 'new';
+    $('locFields').hidden = !isNew;
+    form.querySelectorAll('.loc-opt').forEach(o => o.classList.toggle('is-on', o.querySelector('input').checked));
+    if(isNew && focus && !$('venue').value.trim()) focusQuietly($('venue'));
+  }
+  function setLocType(type){
+    const r = form.querySelector(`input[name="locType"][value="${type === 'new' ? 'new' : 'usual'}"]`);
+    if(r) r.checked = true;
+    syncLocation(false);
+  }
+  form.querySelectorAll('input[name="locType"]').forEach(r =>
+    r.addEventListener('change', () => { $('f-loctype').classList.remove('invalid'); syncLocation(true); }));
+  ['venue','address'].forEach(id => $(id).addEventListener('input', () => $('f-' + id).classList.remove('invalid')));
+
   // ── Remembering the client's details (this browser only) ──
   function saveDetails(){
     try{
       localStorage.setItem(REQUEST.storageKey, JSON.stringify({
         company: $('company').value.trim(),
         contact: $('contact').value.trim(),
-        email:   $('email').value.trim()
+        email:   $('email').value.trim(),
+        location: locType()
       }));
     }catch(e){ /* private mode or storage full */ }
   }
@@ -1492,6 +1558,7 @@
       $('company').value = d.company || '';
       $('contact').value = d.contact || '';
       $('email').value   = d.email   || '';
+      setLocType(d.location);
       $('remember').checked = true;
       $('savedNote').hidden = false;
     }catch(e){ /* ignore corrupt data */ }
@@ -1499,7 +1566,8 @@
 
   $('forgetBtn').addEventListener('click', () => {
     try{ localStorage.removeItem(REQUEST.storageKey); }catch(e){}
-    ['company','contact','email'].forEach(id => $(id).value = '');
+    ['company','contact','email','venue','address'].forEach(id => $(id).value = '');
+    setLocType('usual');
     $('remember').checked = false;
     $('savedNote').hidden = true;
     focusQuietly($('company'));
@@ -1538,6 +1606,13 @@
     const email = $('email').value.trim();
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email))
       return markInvalid('f-email','email','Check the email address — we can\'t send your confirmation without it.');
+
+    if(locType() === 'new'){
+      if(!$('venue').value.trim())
+        return markInvalid('f-venue','venue','Add the venue or event name.');
+      if($('address').value.trim().length < 5)
+        return markInvalid('f-address','address','Add the full address and postcode, or a Google Maps link, so our staff can find you.');
+    }
 
     const q = buildQuote();
     const multi = q.days.length > 1;
@@ -1608,6 +1683,9 @@
       company:        $('company').value.trim(),
       contact:        $('contact').value.trim(),
       email:          $('email').value.trim(),
+      location:       locType() === 'new'
+                        ? { type: 'new', venue: $('venue').value.trim(), address: $('address').value.trim() }
+                        : { type: 'usual' },
       shifts:         q.days.map(d => ({
                         date:            d.date,
                         start:           d.start,
@@ -1697,6 +1775,7 @@
     closePicker();
     dayList.innerHTML = '';
     $('confirmDetails').checked = false;
+    $('venue').value = ''; $('address').value = '';
     addDay();
     clearInvalid();
     renderRequest();
